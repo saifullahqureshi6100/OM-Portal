@@ -1,0 +1,2835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0f1e"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>ICMA Study Portal — Jarvis AI Tutor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"/>
+<style>
+:root{
+  --bg:#0a0f1e;--surface:#0f1829;--surface2:#151f35;--surface3:#1a2640;
+  --cyan:#38bdf8;--cyan2:#0ea5e9;--cyan-dim:#1e4a6b;
+  --green:#34d399;--amber:#fbbf24;--rose:#f87171;--purple:#a78bfa;
+  --text:#e2eaf4;--text2:#8aabb8;--text3:#4a6080;
+  --border:#1e3050;--border2:#243555;
+  --radius:12px;--radius-sm:8px;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  color-scheme:dark;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(56,189,248,.12),transparent),radial-gradient(ellipse 50% 70% at 90% 80%,rgba(167,139,250,.07),transparent);pointer-events:none;z-index:0}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,15,30,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:60px}
+.nav-logo{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:.95rem;color:var(--cyan);text-decoration:none;white-space:nowrap}
+.nav-logo svg{width:28px;height:28px}
+.nav-tabs{display:flex;gap:.25rem;overflow-x:auto;scrollbar-width:none;flex:1}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:.45rem .85rem;border-radius:var(--radius-sm);font-size:.78rem;font-weight:500;border:none;background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:.4rem}
+.nav-tab:hover{background:var(--surface2);color:var(--text)}
+.nav-tab.active{background:rgba(56,189,248,.12);color:var(--cyan);border:1px solid rgba(56,189,248,.25)}
+.nav-tab svg{width:14px;height:14px}
+.nav-actions{display:flex;align-items:center;gap:.5rem;margin-left:auto}
+.btn-icon{width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-icon:hover{color:var(--cyan);border-color:var(--cyan-dim)}
+.btn-icon svg{width:16px;height:16px}
+
+/* LAYOUT */
+.app{padding-top:60px;min-height:100vh;position:relative;z-index:1}
+.view{display:none;padding:1.5rem;max-width:1400px;margin:0 auto;animation:fadeIn .2s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS & SURFACES */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.9rem}
+.glass{background:rgba(15,24,41,.7);backdrop-filter:blur(12px)}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+@media(max-width:900px){.grid2,.grid3,.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+
+/* TYPOGRAPHY */
+h1{font-size:1.5rem;font-weight:700;line-height:1.2}
+h2{font-size:1.1rem;font-weight:600;line-height:1.3}
+h3{font-size:.9rem;font-weight:600}
+p,span,.label{font-size:.82rem;color:var(--text2);line-height:1.6}
+.section-title{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.section-title svg{width:18px;height:18px;color:var(--cyan)}
+.mono{font-family:var(--mono);font-size:.78rem}
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:999px;font-size:.7rem;font-weight:600;border:1px solid}
+.badge-cyan{color:var(--cyan);border-color:rgba(56,189,248,.35);background:rgba(56,189,248,.08)}
+.badge-green{color:var(--green);border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.08)}
+.badge-amber{color:var(--amber);border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08)}
+.badge-rose{color:var(--rose);border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.08)}
+.badge-purple{color:var(--purple);border-color:rgba(167,139,250,.35);background:rgba(167,139,250,.08)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--cyan2);color:#0a0f1e}
+.btn-primary:hover{background:var(--cyan)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.btn-secondary:hover{border-color:var(--cyan-dim);color:var(--cyan)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--rose);border:1px solid rgba(248,113,113,.25)}
+.btn-danger:hover{background:rgba(248,113,113,.2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* INPUTS */
+input,textarea,select{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.82rem;padding:.6rem .9rem;width:100%;outline:none;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan)}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+select option{background:var(--surface)}
+label{font-size:.75rem;color:var(--text2);display:block;margin-bottom:.4rem;font-weight:500}
+
+/* PROGRESS BAR */
+.progress-bar{height:6px;background:var(--surface3);border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;border-radius:999px;transition:width .4s ease}
+.progress-fill.cyan{background:linear-gradient(90deg,var(--cyan2),var(--cyan))}
+.progress-fill.green{background:linear-gradient(90deg,#059669,var(--green))}
+.progress-fill.amber{background:linear-gradient(90deg,#d97706,var(--amber))}
+.progress-fill.rose{background:linear-gradient(90deg,#dc2626,var(--rose))}
+.progress-fill.purple{background:linear-gradient(90deg,#7c3aed,var(--purple))}
+
+/* STAT CARD */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 var(--radius) 0 60px;opacity:.08}
+.stat-card.c-cyan::before{background:var(--cyan)}
+.stat-card.c-green::before{background:var(--green)}
+.stat-card.c-amber::before{background:var(--amber)}
+.stat-card.c-rose::before{background:var(--rose)}
+.stat-card.c-purple::before{background:var(--purple)}
+.stat-num{font-size:1.8rem;font-weight:800;line-height:1;font-family:var(--mono)}
+.stat-label{font-size:.72rem;color:var(--text2);margin-top:.3rem;font-weight:500}
+.stat-sub{font-size:.7rem;color:var(--text3);margin-top:.2rem}
+
+/* MCQ */
+.mcq-option{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border2);cursor:pointer;transition:all .15s;margin-bottom:.5rem;font-size:.82rem;text-align:left;background:var(--surface2);color:var(--text);width:100%}
+.mcq-option:hover:not(.answered){border-color:var(--cyan-dim);background:var(--surface3)}
+.mcq-option.selected{border-color:var(--cyan);background:rgba(56,189,248,.1);color:var(--cyan)}
+.mcq-option.correct{border-color:var(--green);background:rgba(52,211,153,.1);color:var(--green)}
+.mcq-option.wrong{border-color:var(--rose);background:rgba(248,113,113,.1);color:var(--rose)}
+.mcq-letter{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;shrink:0;flex-shrink:0}
+
+/* FLASHCARD */
+.flashcard{perspective:1000px;cursor:pointer;min-height:220px}
+.flashcard-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg)}
+.flashcard-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;border:1px solid var(--border2)}
+.flashcard-front{background:linear-gradient(135deg,var(--surface),var(--surface2));min-height:220px}
+.flashcard-back{background:linear-gradient(135deg,var(--surface2),var(--surface3));transform:rotateY(180deg);min-height:220px}
+
+/* VIDEO EMBED */
+.video-wrapper{position:relative;padding-bottom:56.25%;height:0;border-radius:var(--radius);overflow:hidden;background:var(--surface2)}
+.video-wrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:.7rem 1rem;font-size:.8rem;color:var(--text);display:flex;align-items:center;gap:.6rem;animation:slideIn .25s ease;pointer-events:all;min-width:260px}
+.toast.success{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+.toast.error{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.08)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* CHAT */
+.chat-feed{max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:.75rem;padding:.75rem;scroll-behavior:smooth}
+.chat-bubble{border-radius:var(--radius-sm);padding:.9rem 1rem;font-size:.82rem;line-height:1.65;border:1px solid;white-space:pre-wrap;word-break:break-word}
+.chat-user{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.2);margin-left:2rem}
+.chat-ai{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.15);margin-right:1rem}
+.chat-label{font-size:.68rem;font-family:var(--mono);font-weight:600;margin-bottom:.35rem;opacity:.7}
+
+/* READING */
+.reading-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem 2rem;line-height:1.9;font-size:.88rem;max-width:720px;margin:0 auto}
+.reading-panel h2{color:var(--cyan);margin:1.5rem 0 .6rem}
+.reading-panel h3{color:var(--amber);margin:1.2rem 0 .4rem}
+.reading-panel p{color:var(--text);margin-bottom:.8rem}
+.reading-panel ul{padding-left:1.4rem;margin-bottom:.8rem}
+.reading-panel li{color:var(--text2);margin-bottom:.3rem}
+.reading-panel .highlight{background:rgba(56,189,248,.1);border-left:3px solid var(--cyan);padding:.6rem .9rem;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin:.8rem 0}
+.reading-panel code{font-family:var(--mono);background:var(--surface3);padding:.1em .4em;border-radius:4px;font-size:.8em;color:var(--amber)}
+
+/* DASHBOARD */
+.chart-wrap{background:var(--surface2);border-radius:var(--radius-sm);padding:1rem;position:relative;overflow:hidden}
+.mini-bar{display:flex;align-items:end;gap:.35rem;height:80px}
+.mini-bar-col{flex:1;border-radius:4px 4px 0 0;min-width:12px;position:relative;cursor:pointer;transition:opacity .15s}
+.mini-bar-col:hover{opacity:.8}
+.mini-bar-col .tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:.25rem .5rem;font-size:.65rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s}
+.mini-bar-col:hover .tooltip{opacity:1}
+.radar-svg{width:100%;max-width:280px;margin:0 auto;display:block}
+
+/* SCROLL */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--cyan-dim)}
+
+/* PILL TABS */
+.pill-tabs{display:flex;gap:.35rem;background:var(--surface2);padding:.3rem;border-radius:var(--radius-sm);border:1px solid var(--border)}
+.pill-tab{flex:1;padding:.45rem .7rem;border-radius:6px;font-size:.75rem;font-weight:600;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;white-space:nowrap}
+.pill-tab.active{background:var(--surface3);color:var(--cyan);border:1px solid rgba(56,189,248,.2)}
+
+/* TOPIC CHIP */
+.topic-chip{padding:.35rem .75rem;border-radius:999px;font-size:.72rem;font-weight:500;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:.35rem}
+.topic-chip:hover,.topic-chip.active{border-color:var(--cyan-dim);background:rgba(56,189,248,.08);color:var(--cyan)}
+.topic-chip.weak{border-color:rgba(248,113,113,.3);color:var(--rose);background:rgba(248,113,113,.06)}
+.topic-chip.weak.active{border-color:var(--rose);background:rgba(248,113,113,.12)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:1.75rem;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-hidden{display:none}
+
+/* TIMER RING */
+.timer-ring{position:relative;width:80px;height:80px}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring .track{stroke:var(--surface3);fill:none;stroke-width:5}
+.timer-ring .fill{stroke:var(--cyan);fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .9s linear}
+.timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--cyan)}
+
+/* PAST PAPER */
+.pp-question{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:.75rem}
+.pp-mark{background:rgba(56,189,248,.1);color:var(--cyan);border:1px solid rgba(56,189,248,.2);border-radius:4px;padding:.1rem .4rem;font-size:.7rem;font-family:var(--mono)}
+
+/* LANG BADGE */
+.lang-switcher{display:flex;gap:.25rem;padding:.2rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.lang-btn{padding:.3rem .65rem;border-radius:5px;font-size:.72rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s}
+.lang-btn.active{background:rgba(56,189,248,.15);color:var(--cyan)}
+
+/* RESPONSIVE NAV */
+@media(max-width:768px){
+  .nav{padding:0 .75rem}
+  .view{padding:1rem .75rem}
+  .nav-logo span{display:none}
+  .reading-panel{padding:1.25rem}
+}
+
+/* ═══ FULLSCREEN OVERLAY ═══ */
+.fs-overlay{
+  position:fixed;inset:0;z-index:900;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  animation:fsIn .22s cubic-bezier(.4,0,.2,1);
+}
+@keyframes fsIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.fs-overlay.hidden{display:none}
+.fs-topbar{
+  height:52px;min-height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.25rem;
+  background:rgba(10,15,30,.95);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.fs-topbar-title{font-size:.88rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:.6rem}
+.fs-topbar-title span{font-size:.72rem;color:var(--text3);font-family:var(--mono)}
+.fs-topbar-actions{display:flex;align-items:center;gap:.5rem}
+.fs-body{flex:1;overflow:auto;padding:1.5rem;max-width:1200px;margin:0 auto;width:100%}
+.fs-body-noscroll{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.fs-close-btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.4rem .9rem;border-radius:var(--radius-sm);
+  font-size:.78rem;font-weight:600;cursor:pointer;
+  border:1px solid var(--border2);background:var(--surface2);color:var(--text2);
+  transition:all .15s;
+}
+.fs-close-btn:hover{border-color:var(--rose);color:var(--rose)}
+.fs-close-btn svg{width:14px;height:14px}
+
+/* Fullscreen reading */
+.fs-reading{max-width:760px;margin:0 auto}
+/* Fullscreen video */
+.fs-video-wrap{position:relative;padding-bottom:56.25%;height:0;border-radius:var(--radius);overflow:hidden;background:#000}
+.fs-video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+/* Fullscreen MCQ */
+.fs-mcq-center{max-width:720px;margin:0 auto;width:100%}
+/* Fullscreen dashboard */
+.fs-dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+
+/* Fullscreen button that appears on hover of a card/section */
+.fs-trigger{
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.3rem .7rem;border-radius:var(--radius-sm);
+  font-size:.72rem;font-weight:500;cursor:pointer;
+  border:1px solid var(--border2);background:var(--surface2);color:var(--text2);
+  transition:all .15s;white-space:nowrap;
+}
+.fs-trigger:hover{border-color:var(--cyan-dim);color:var(--cyan);background:rgba(56,189,248,.06)}
+.fs-trigger svg{width:12px;height:12px}
+
+/* Progress dashboard panels */
+.dash-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem}
+@media(max-width:900px){.dash-kpi-row{grid-template-columns:1fr 1fr}}
+.radar-container{display:flex;align-items:center;justify-content:center;padding:1rem}
+.chart-col{background:var(--surface2);border-radius:var(--radius-sm);padding:1rem}
+.bar-labels{display:flex;justify-content:space-between;margin-top:.4rem}
+.bar-label-item{font-size:.6rem;color:var(--text3);text-align:center;flex:1}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="#" onclick="return false">
+    <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.5"/><path d="M10 16h12M16 10v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="16" r="4" fill="currentColor" opacity=".3"/></svg>
+    <span>ICMA Study Portal</span>
+  </a>
+  <div class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" onclick="switchView('dashboard')" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-tab" onclick="switchView('tutor')" data-view="tutor">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 8v4l3 3"/></svg>
+      AI Tutor
+    </button>
+    <button class="nav-tab" onclick="switchView('reading')" data-view="reading">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Reading
+    </button>
+    <button class="nav-tab" onclick="switchView('videos')" data-view="videos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Videos
+    </button>
+    <button class="nav-tab" onclick="switchView('mcq')" data-view="mcq">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>
+      MCQ Tests
+    </button>
+    <button class="nav-tab" onclick="switchView('flashcards')" data-view="flashcards">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg>
+      Flashcards
+    </button>
+    <button class="nav-tab" onclick="switchView('pastpapers')" data-view="pastpapers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Past Papers
+    </button>
+    <button class="nav-tab" onclick="switchView('planner')" data-view="planner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Study Plan
+    </button>
+  </div>
+  <div class="nav-actions">
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="langUr" onclick="setLang('ur')">اردو</button>
+    </div>
+    <button class="btn-icon" onclick="toggleVoice()" id="voiceBtn" title="Toggle voice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+    </button>
+    <button class="btn-icon" onclick="startMic()" id="micBtn" title="Voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════ DASHBOARD VIEW ═══════════ -->
+<div class="view active" id="view-dashboard">
+  <div style="margin-bottom:1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+    <div>
+      <h1>Welcome back, <span style="color:var(--cyan)">Saif</span> 🎯</h1>
+      <p style="margin-top:.4rem">ICMA Managerial Level — Your exam countdown and progress overview</p>
+    </div>
+    <button class="fs-trigger" onclick="openFullscreen('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+      Full Dashboard
+    </button>
+  </div>
+
+  <!-- KPI STATS -->
+  <div class="grid4" style="margin-bottom:1.25rem">
+    <div class="stat-card c-cyan">
+      <div class="stat-num" id="daysRemaining" style="color:var(--cyan)">12</div>
+      <div class="stat-label">Days to Exam</div>
+      <div class="stat-sub">Dec 5, 2026</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-num" id="overallPct" style="color:var(--green)">39%</div>
+      <div class="stat-label">Avg Prep Score</div>
+      <div class="stat-sub">Across 3 subjects</div>
+    </div>
+    <div class="stat-card c-amber">
+      <div class="stat-num" id="hoursStudied" style="color:var(--amber)">20</div>
+      <div class="stat-label">Hours Logged</div>
+      <div class="stat-sub">This week</div>
+    </div>
+    <div class="stat-card c-purple">
+      <div class="stat-num" id="cardsReviewed" style="color:var(--purple)">0</div>
+      <div class="stat-label">Cards Reviewed</div>
+      <div class="stat-sub">Spaced repetition</div>
+    </div>
+  </div>
+
+  <!-- SUBJECT PROGRESS + ANALYTICS -->
+  <div class="grid2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Subject Progress
+      </div>
+      <div id="subjectProgressBars"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Today's Plan
+      </div>
+      <div id="todayPlan"></div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS CHART -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Study Analytics — 7 Day Progress
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+      <div class="chart-wrap">
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:.5rem">Hours/Day</div>
+        <div class="mini-bar" id="hoursChart"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:.3rem">
+          <span style="font-size:.6rem;color:var(--text3)">Mon</span>
+          <span style="font-size:.6rem;color:var(--text3)">Sun</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:.5rem">MCQ Accuracy %</div>
+        <div class="mini-bar" id="accuracyChart"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:.3rem">
+          <span style="font-size:.6rem;color:var(--text3)">Mon</span>
+          <span style="font-size:.6rem;color:var(--text3)">Sun</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:.5rem">Weak Areas 🔥</div>
+        <div id="weakAreasList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="card">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Quick Actions
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:.6rem">
+      <button class="btn btn-primary" onclick="switchView('mcq')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>Start MCQ Test</button>
+      <button class="btn btn-secondary" onclick="switchView('tutor')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20"/><path d="M12 8v4l3 3"/></svg>Ask AI Tutor</button>
+      <button class="btn btn-secondary" onclick="switchView('flashcards')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>Review Cards</button>
+      <button class="btn btn-secondary" onclick="switchView('reading')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>Read Topic</button>
+      <button class="btn btn-ghost" onclick="switchView('pastpapers')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>Past Papers</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ AI TUTOR VIEW ═══════════ -->
+<div class="view" id="view-tutor">
+  <div class="grid2" style="align-items:start;gap:1.25rem">
+    <!-- LEFT: Controls -->
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Tutor Settings
+        </div>
+        <label>Subject</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem" id="tutorSubjectBtns"></div>
+        <label>Topic / Chapter</label>
+        <input type="text" id="tutorTopic" value="IAS 40 Investment Property" style="margin-bottom:.7rem"/>
+        <label>Weak Topics (click to select)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.9rem" id="tutorWeakChips"></div>
+        <label>Language</label>
+        <div class="pill-tabs" style="margin-bottom:.7rem">
+          <button class="pill-tab active" onclick="setTutorLang('bilingual',this)">Eng + Urdu</button>
+          <button class="pill-tab" onclick="setTutorLang('roman_urdu',this)">Roman Urdu</button>
+          <button class="pill-tab" onclick="setTutorLang('english',this)">English</button>
+        </div>
+        <label>Mode</label>
+        <div class="pill-tabs" style="margin-bottom:.7rem">
+          <button class="pill-tab active" onclick="setTutorMode('explain',this)">Explain</button>
+          <button class="pill-tab" onclick="setTutorMode('quiz',this)">3 MCQs</button>
+          <button class="pill-tab" onclick="setTutorMode('socratic',this)">Socratic</button>
+          <button class="pill-tab" onclick="setTutorMode('plan',this)">Study Plan</button>
+        </div>
+        <label>Persona</label>
+        <div class="pill-tabs">
+          <button class="pill-tab active" onclick="setPersona('tutor',this)">🎓 Tutor</button>
+          <button class="pill-tab" onclick="setPersona('examiner',this)">📋 Examiner</button>
+          <button class="pill-tab" onclick="setPersona('coach',this)">🎯 Coach</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Chat -->
+    <div class="card" style="display:flex;flex-direction:column;min-height:600px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:.82rem;font-weight:600;color:var(--cyan)">Jarvis AI Tutor</div>
+          <div style="font-size:.7rem;color:var(--text2)" id="tutorSubInfo">FACR — IAS 40 Investment Property</div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-ghost" style="padding:.35rem .7rem;font-size:.72rem" onclick="clearChat()">Clear</button>
+          <button class="btn btn-ghost" style="padding:.35rem .7rem;font-size:.72rem" id="webSearchBtn" onclick="toggleWebSearch()">🌐 Web OFF</button>
+        </div>
+      </div>
+      <div class="chat-feed" id="tutorChat" style="flex:1"></div>
+      <div style="border-top:1px solid var(--border);padding-top:.75rem;margin-top:.75rem">
+        <textarea id="tutorQuestion" placeholder="Ask Jarvis... e.g. IAS 40 Fair Value vs Cost Model explain karo with example" rows="3" style="margin-bottom:.6rem"></textarea>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-ghost" onclick="startMicForTutor()" style="padding:.55rem">🎙️</button>
+          <button class="btn btn-primary" style="flex:1" onclick="askTutor()" id="askBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Ask Jarvis
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ READING VIEW ═══════════ -->
+<div class="view" id="view-reading">
+  <div class="grid2" style="align-items:start;gap:1.25rem">
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          Select Topic to Read
+        </div>
+        <label>Subject</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem" id="readSubjectBtns"></div>
+        <label>Chapter / Topic</label>
+        <select id="readTopicSelect" style="margin-bottom:.7rem" onchange="updateReadTopic()"></select>
+        <label>Or search topic</label>
+        <input type="text" id="readTopicSearch" placeholder="e.g. Deferred Tax, IAS 36..." style="margin-bottom:.7rem" oninput="searchReadTopic()"/>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:.5rem" onclick="loadReading()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></svg>
+          Load Reading Material
+        </button>
+        <button class="btn btn-secondary" style="width:100%" onclick="generateReading()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+          Generate AI Reading
+        </button>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem">
+        <div class="section-title">Reading Controls</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <label style="font-size:.75rem">Font Size: <span id="fontSizeVal">14px</span>
+            <input type="range" id="fontSizeRange" min="12" max="20" value="14" oninput="changeFontSize(this.value)" style="margin-top:.3rem;padding:0;background:transparent;border:none;width:100%;display:block"/>
+          </label>
+          <div style="display:flex;gap:.4rem">
+            <button class="btn btn-secondary" style="flex:1;font-size:.72rem" onclick="toggleReadingTheme()">🌙 Dark/Light</button>
+            <button class="btn btn-secondary" style="flex:1;font-size:.72rem" onclick="speakReading()">🔊 Read Aloud</button>
+          </div>
+          <button class="btn btn-ghost" style="font-size:.72rem" onclick="switchToVideoForTopic()">▶️ Watch Related Video</button>
+        </div>
+      </div>
+
+      <!-- GOOGLE DRIVE STUDY MATERIALS -->
+      <div class="card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--green)"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          Your Study Materials
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.45rem" id="driveMaterialsList">
+          <!-- populated by JS -->
+        </div>
+        <div style="margin-top:.75rem;padding:.6rem .75rem;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:var(--radius-sm)">
+          <p style="font-size:.7rem;color:var(--cyan)">💡 Connect Google Drive above to browse files directly in the portal</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+        <span style="font-size:.72rem;color:var(--text3)">Reading Material</span>
+        <button class="fs-trigger" onclick="openFullscreen('reading')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          Full Screen Read
+        </button>
+      </div>
+      <div id="readingContent" class="reading-panel" style="min-height:400px">
+        <div style="text-align:center;padding:3rem;color:var(--text2)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:48px;height:48px;margin:0 auto 1rem;display:block;opacity:.3"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          <p>Select a subject and topic then click <strong>Load Reading Material</strong> or <strong>Generate AI Reading</strong> to begin an interactive reading session.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ VIDEOS VIEW ═══════════ -->
+<div class="view" id="view-videos">
+  <div style="margin-bottom:1.25rem">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Video Library — ICMA Topics
+    </div>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+      <input type="text" id="videoSearch" placeholder="Search topic e.g. IAS 40, Deferred Tax..." style="max-width:380px" oninput="searchVideos()"/>
+      <button class="btn btn-primary" onclick="searchVideos()">Search YouTube</button>
+      <div style="display:flex;gap:.4rem" id="videoSubjectFilter"></div>
+    </div>
+  </div>
+
+  <div id="videoPlayer" style="display:none;margin-bottom:1.25rem" class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <span style="font-size:.72rem;color:var(--text3)">Now Playing</span>
+      <button class="fs-trigger" onclick="openFullscreen('video')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+        Full Screen Video
+      </button>
+    </div>
+    <div class="video-wrapper" id="videoPlayerWrap"></div>
+    <div style="padding-top:1rem">
+      <h3 id="videoTitle" style="color:var(--text);margin-bottom:.4rem"></h3>
+      <p id="videoChannel" style="font-size:.75rem;color:var(--text2)"></p>
+    </div>
+  </div>
+
+  <div class="grid-auto" id="videoGrid">
+    <!-- Video cards populated by JS -->
+  </div>
+</div>
+
+<!-- ═══════════ MCQ TEST VIEW ═══════════ -->
+<div class="view" id="view-mcq">
+  <!-- Setup Panel -->
+  <div id="mcqSetup">
+    <div style="max-width:600px;margin:0 auto">
+      <div class="card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          Configure MCQ Test
+        </div>
+        <label>Subject</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem" id="mcqSubjectBtns"></div>
+        <label>Topic / Chapter Focus</label>
+        <input type="text" id="mcqTopic" value="Mixed weak topics" style="margin-bottom:.7rem"/>
+        <div class="grid2" style="margin-bottom:.7rem">
+          <div>
+            <label>Number of Questions</label>
+            <select id="mcqCount">
+              <option value="5">5 questions</option>
+              <option value="10" selected>10 questions</option>
+              <option value="20">20 questions</option>
+              <option value="30">30 questions</option>
+            </select>
+          </div>
+          <div>
+            <label>Difficulty</label>
+            <select id="mcqDifficulty">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate" selected>Intermediate</option>
+              <option value="exam-standard">Exam Standard</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:1rem">
+          <input type="checkbox" id="mcqTimed" checked style="width:auto;padding:0"/>
+          <label for="mcqTimed" style="margin:0;cursor:pointer">Timed Mode (1.5 min/question)</label>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="generateMCQ()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Generate AI MCQ Test
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Test -->
+  <div id="mcqActive" style="display:none;max-width:800px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div>
+        <span class="badge badge-cyan" id="mcqSubjectBadge">FACR</span>
+        <span style="font-size:.82rem;color:var(--text2);margin-left:.6rem" id="mcqProgressText">Q 1 of 10</span>
+        <button class="fs-trigger" style="margin-left:.6rem" onclick="openFullscreen('mcq')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          Focus Mode
+        </button>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <div class="timer-ring" id="timerRing">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="track" cx="40" cy="40" r="34"/>
+            <circle class="fill" cx="40" cy="40" r="34" id="timerArc" stroke-dasharray="213.6" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-num" id="timerNum">1:30</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:.72rem" onclick="endTest()">End Test</button>
+      </div>
+    </div>
+
+    <div class="card" id="mcqQuestionCard">
+      <div style="font-size:.72rem;color:var(--text3);font-family:var(--mono);margin-bottom:.75rem" id="mcqTopicLabel"></div>
+      <p style="font-size:.88rem;color:var(--text);font-weight:500;line-height:1.6;margin-bottom:1.25rem" id="mcqQuestionText"></p>
+      <div id="mcqOptions"></div>
+      <div id="mcqFeedback" style="display:none;margin-top:.9rem;padding:.9rem;border-radius:var(--radius-sm);border:1px solid;font-size:.8rem;line-height:1.6"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-primary" id="mcqNextBtn" onclick="nextMCQ()" style="display:none">Next Question →</button>
+        <button class="btn btn-secondary" id="mcqSubmitBtn" onclick="submitAnswer()">Submit Answer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="mcqResults" style="display:none;max-width:700px;margin:0 auto">
+    <div class="card" style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:3.5rem;font-weight:800;font-family:var(--mono);color:var(--cyan)" id="resultScore"></div>
+      <div style="font-size:1rem;font-weight:600;margin:.5rem 0;color:var(--text)" id="resultLabel"></div>
+      <div style="font-size:.8rem;color:var(--text2)" id="resultDetail"></div>
+      <div style="display:flex;gap:.6rem;justify-content:center;margin-top:1rem">
+        <button class="btn btn-primary" onclick="showMcqSetup()">New Test</button>
+        <button class="btn btn-secondary" onclick="switchView('tutor')">Ask Tutor about mistakes</button>
+      </div>
+    </div>
+    <div id="mcqReview"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FLASHCARDS VIEW ═══════════ -->
+<div class="view" id="view-flashcards">
+  <div class="grid2" style="align-items:start;gap:1.25rem">
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg>
+          Flashcard Deck
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem" id="fcSubjectFilter"></div>
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem">
+          <input type="checkbox" id="fcDueOnly" style="width:auto;padding:0" onchange="filterCards()"/>
+          <label for="fcDueOnly" style="margin:0;cursor:pointer;font-size:.78rem">Due for review only (<span id="fcDueCount">0</span>)</label>
+        </div>
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:.5rem">
+          <span id="fcCurrentIdx">1</span> of <span id="fcTotalCount">0</span> cards · <span id="fcMasteredCount">0</span> mastered
+        </div>
+        <div class="progress-bar" style="margin-bottom:1rem"><div class="progress-fill green" id="fcMasteredBar" style="width:0%"></div></div>
+
+        <div style="display:flex;gap:.4rem;margin-bottom:.6rem">
+          <button class="btn btn-ghost" style="flex:1;font-size:.75rem" onclick="prevCard()">← Prev</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:.75rem" onclick="nextCard()">Next →</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="margin-bottom:.7rem">Generate New Cards</div>
+        <label>Subject</label>
+        <select id="fcGenSubject" style="margin-bottom:.5rem" onchange="updateFcGenTopic()">
+          <option value="FACR">FACR</option>
+          <option value="BT">Business Taxation</option>
+          <option value="OM">Operations Management</option>
+        </select>
+        <label>Topic</label>
+        <input type="text" id="fcGenTopic" value="IAS 12 Deferred Tax" style="margin-bottom:.6rem"/>
+        <button class="btn btn-primary" style="width:100%" onclick="generateFlashcards()">✨ Generate 5 Cards</button>
+      </div>
+    </div>
+
+    <div>
+      <!-- Flashcard -->
+      <div class="flashcard" id="mainFlashcard" onclick="flipCard()" style="margin-bottom:1rem;display:block">
+        <div class="flashcard-inner">
+          <div class="flashcard-face flashcard-front" style="min-height:260px">
+            <div style="font-size:.7rem;font-family:var(--mono);color:var(--cyan);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.05em" id="fcFrontLabel">FACR · IAS 40</div>
+            <p style="font-size:.88rem;color:var(--text);font-weight:500;line-height:1.65;text-align:center" id="fcFrontText">Click to load a flashcard</p>
+            <div style="margin-top:1.25rem;font-size:.7rem;color:var(--text3)">Tap to reveal answer</div>
+          </div>
+          <div class="flashcard-face flashcard-back" style="min-height:260px">
+            <div style="font-size:.7rem;color:var(--green);margin-bottom:.75rem;font-weight:600">ANSWER</div>
+            <p style="font-size:.82rem;color:var(--text);line-height:1.65;text-align:center" id="fcBackText"></p>
+            <p style="font-size:.72rem;color:var(--amber);margin-top:.75rem;font-style:italic" id="fcHintText"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rating -->
+      <div class="card" id="fcRating" style="display:none">
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:.6rem">How well did you know this?</div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-danger" style="flex:1" onclick="rateCard(0)">❌ Forgot</button>
+          <button class="btn btn-secondary" style="flex:1" onclick="rateCard(3)">🤔 Partial</button>
+          <button class="btn" style="flex:1;background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.3)" onclick="rateCard(5)">✅ Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAST PAPERS VIEW ═══════════ -->
+<div class="view" id="view-pastpapers">
+  <div class="grid2" style="align-items:start;gap:1.25rem">
+    <div>
+      <div class="card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Past Paper Practice
+        </div>
+        <label>Subject</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem" id="ppSubjectBtns"></div>
+        <label>Year / Session</label>
+        <select id="ppYear" style="margin-bottom:.7rem">
+          <option value="2024-dec">December 2024</option>
+          <option value="2024-jun">June 2024</option>
+          <option value="2023-dec">December 2023</option>
+          <option value="2023-jun">June 2023</option>
+          <option value="2022-dec">December 2022</option>
+          <option value="ai-generated" selected>AI Generated (Practice)</option>
+        </select>
+        <label>Question Type</label>
+        <div class="pill-tabs" style="margin-bottom:.7rem">
+          <button class="pill-tab active" onclick="setPPType('mcq',this)">MCQ</button>
+          <button class="pill-tab" onclick="setPPType('numerical',this)">Numerical</button>
+          <button class="pill-tab" onclick="setPPType('theory',this)">Theory</button>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:.5rem" onclick="loadPastPaper()">Load Past Paper</button>
+        <button class="btn btn-secondary" style="width:100%" onclick="generatePastPaper()">✨ AI Generated Paper</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="min-height:400px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <h3 id="ppTitle" style="color:var(--cyan)">Select a paper to begin</h3>
+          <span class="badge badge-amber" id="ppTimeBadge" style="display:none"></span>
+        </div>
+        <div id="ppContent">
+          <div style="text-align:center;padding:3rem;color:var(--text2)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:48px;height:48px;margin:0 auto 1rem;display:block;opacity:.3"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+            <p>Select subject and year, then load a paper</p>
+          </div>
+        </div>
+        <div id="ppAnswerArea" style="display:none;margin-top:1rem">
+          <label>Your Workings / Answer</label>
+          <textarea id="ppAnswer" rows="5" placeholder="Show all workings here..."></textarea>
+          <button class="btn btn-primary" style="width:100%;margin-top:.6rem" onclick="submitPPAnswer()">Submit for AI Feedback</button>
+        </div>
+        <div id="ppFeedback" style="display:none;margin-top:1rem;padding:.9rem;border-radius:var(--radius-sm);border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.06);font-size:.8rem;line-height:1.65;color:var(--text)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ STUDY PLANNER VIEW ═══════════ -->
+<div class="view" id="view-planner">
+  <div class="grid2" style="align-items:start;gap:1.25rem">
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Exam Countdown Planner
+        </div>
+        <label>Exam Date</label>
+        <input type="date" id="planExamDate" value="2026-12-05" style="margin-bottom:.7rem" oninput="updateCountdown()"/>
+        <div style="display:flex;gap:.7rem;margin-bottom:.7rem">
+          <div style="flex:1">
+            <label>Weekday Hours/Day</label>
+            <input type="number" id="planWeekday" value="3" min="1" max="8"/>
+          </div>
+          <div style="flex:1">
+            <label>Weekend Hours/Day</label>
+            <input type="number" id="planWeekend" value="6" min="1" max="12"/>
+          </div>
+        </div>
+        <label>Study Start Time</label>
+        <input type="time" id="planStartTime" value="17:30" style="margin-bottom:.9rem"/>
+        <button class="btn btn-primary" style="width:100%" onclick="generatePlan()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Generate AI Study Plan
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Countdown</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;text-align:center">
+          <div class="card-sm" style="background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.2)">
+            <div style="font-size:2rem;font-weight:800;font-family:var(--mono);color:var(--cyan)" id="countDays">12</div>
+            <div style="font-size:.7rem;color:var(--text2)">Days Left</div>
+          </div>
+          <div class="card-sm" style="background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.2)">
+            <div style="font-size:2rem;font-weight:800;font-family:var(--mono);color:var(--amber)" id="countHours">36</div>
+            <div style="font-size:.7rem;color:var(--text2)">Study Hours Avail</div>
+          </div>
+        </div>
+        <div style="margin-top:.7rem;padding:.7rem;background:var(--surface2);border-radius:var(--radius-sm);font-size:.75rem;color:var(--text2)" id="planJarvisBriefing">
+          Jarvis will brief you after generating the plan.
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="min-height:500px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div class="section-title" style="margin-bottom:0">Your Study Schedule</div>
+        <button class="fs-trigger" onclick="openFullscreen('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          Full Progress Dashboard
+        </button>
+      </div>
+      <div id="planDaysList">
+        <div style="text-align:center;padding:3rem;color:var(--text2)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:48px;height:48px;margin:0 auto 1rem;display:block;opacity:.3"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <p>Generate your plan to see the daily schedule</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ FULLSCREEN OVERLAY ═══════════ -->
+<div class="fs-overlay hidden" id="fsOverlay">
+  <div class="fs-topbar">
+    <div class="fs-topbar-title" id="fsTitle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--cyan)"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+      <span id="fsTitleText">Fullscreen</span>
+      <span id="fsTitleSub"></span>
+    </div>
+    <div class="fs-topbar-actions" id="fsTopbarActions">
+      <button class="fs-close-btn" onclick="closeFullscreen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/></svg>
+        Exit Fullscreen
+      </button>
+    </div>
+  </div>
+  <div id="fsContent" class="fs-body"></div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  ICMA STUDY PORTAL — JARVIS AI TUTOR  
+//  Saifullah Qureshi — ICMA Managerial Level
+// ═══════════════════════════════════════════════════════════
+
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+const CLAUDE_MODEL = 'claude-sonnet-4-6';
+
+// ── STATE ────────────────────────────────────────────────────
+let state = {
+  lang: 'en',
+  voiceOn: true,
+  tutorSubject: 'FACR',
+  tutorLang: 'bilingual',
+  tutorMode: 'explain',
+  tutorPersona: 'tutor',
+  webSearch: false,
+  tutorHistory: [],
+  mcqSubject: 'FACR',
+  mcqQuestions: [],
+  mcqCurrentQ: 0,
+  mcqAnswers: [],
+  mcqTimer: null,
+  mcqSecondsLeft: 90,
+  mcqType: null,
+  fcCards: [],
+  fcFiltered: [],
+  fcCurrentIdx: 0,
+  fcFlipped: false,
+  fcSubjectFilter: 'ALL',
+  ppSubject: 'FACR',
+  ppType: 'mcq',
+  ppCurrentQ: null,
+  videoSubjectFilter: 'ALL',
+  readSubject: 'FACR',
+  cardsReviewed: 0,
+  hoursToday: 0,
+};
+
+// ── SUBJECTS DATA ─────────────────────────────────────────────
+const SUBJECTS = [
+  {
+    code:'FACR', name:'Financial Accounting & Corporate Reporting', level:'ML-2',
+    color:'var(--cyan)', pct:52, lastQuiz:61, hours:9,
+    strong:['IFRS 15 Revenue','IAS 7 Cash Flow','IAS 2 Inventories'],
+    weak:['IAS 40 Investment Property','Business Combinations & Goodwill','IAS 12 Deferred Tax','IFRS 3 Acquisition','IAS 36 Impairment'],
+    topics:['IAS 40 Investment Property','IAS 12 Deferred Tax','IAS 36 Impairment','IFRS 3 Business Combinations','IFRS 15 Revenue','IAS 7 Cash Flow Statement','IAS 16 PPE','IAS 38 Intangibles','IFRS 9 Financial Instruments','IAS 10 Events After Reporting','IAS 2 Inventories','Consolidation & Group Accounts','EPS Calculation','IAS 37 Provisions'],
+    verdict:'Solid on revenue, weak on group accounts and deferred tax.'
+  },
+  {
+    code:'BT', name:'Business Taxation', level:'SL-1',
+    color:'var(--green)', pct:64, lastQuiz:70, hours:11,
+    strong:['Salary Income','Sales Tax Calculation','Corporate Tax'],
+    weak:['Capital Gains Tax','Property Income','Dividend Income','Final Tax Regime'],
+    topics:['Salary Income & Tax','Corporate Tax Filing','Sales Tax','Capital Gains','Property Income','Dividend Income','Final Tax Regime','Tax on Agriculture','WHT & Advance Tax','Tax Deductions & Credits','FTR vs NTR','Partnership Taxation'],
+    verdict:'Good momentum. Property income and capital gains need worked examples.'
+  },
+  {
+    code:'OM', name:'Operations & Enterprise Management', level:'ML-1',
+    color:'var(--amber)', pct:0, lastQuiz:0, hours:0,
+    strong:[],
+    weak:['Operations Strategy & Process Design','Balanced Scorecard & KPIs','TQM, Six Sigma & Lean','Supply Chain, EOQ & JIT','Project Management','Quality Management'],
+    topics:['Operations Strategy','Process Design & Improvement','Balanced Scorecard','KPIs & Performance Measurement','TQM & Six Sigma','Lean Management','Supply Chain Management','EOQ & JIT Inventory','Project Management','Risk Management','ERP Systems','Organizational Structure'],
+    verdict:'Not started yet — emergency sprint begins now.'
+  }
+];
+
+const ANALYTICS = {
+  hours: [2,3,1,4,3,2,0],
+  accuracy: [45,60,55,70,65,72,0]
+};
+
+// ── YOUTUBE VIDEOS DB ────────────────────────────────────────
+const VIDEOS = {
+  FACR: [
+    {id:'dQw4w9WgXcQ', title:'IAS 40 Investment Property Full Explanation', channel:'ICMA Study Hub', topic:'IAS 40'},
+    {id:'dQw4w9WgXcQ', title:'Deferred Tax IAS 12 Worked Examples', channel:'AccountingCoach', topic:'IAS 12'},
+    {id:'dQw4w9WgXcQ', title:'Business Combinations IFRS 3 Goodwill Calculation', channel:'CPA Exam Study', topic:'IFRS 3'},
+    {id:'dQw4w9WgXcQ', title:'Consolidation Accounts Step by Step', channel:'ACCA Global', topic:'Consolidation'},
+  ],
+  BT: [
+    {id:'dQw4w9WgXcQ', title:'Pakistan Income Tax 2024 Complete Guide', channel:'Tax Expert PK', topic:'Income Tax'},
+    {id:'dQw4w9WgXcQ', title:'Capital Gains Tax Pakistan Explained', channel:'FBR Help', topic:'Capital Gains'},
+    {id:'dQw4w9WgXcQ', title:'Sales Tax Pakistan Federal & Provincial', channel:'Taxation PK', topic:'Sales Tax'},
+  ],
+  OM: [
+    {id:'dQw4w9WgXcQ', title:'Balanced Scorecard Framework Explained', channel:'Strategy Academy', topic:'BSC'},
+    {id:'dQw4w9WgXcQ', title:'Six Sigma DMAIC Full Course', channel:'Quality Hub', topic:'Six Sigma'},
+    {id:'dQw4w9WgXcQ', title:'Supply Chain Management & EOQ', channel:'Operations Excellence', topic:'SCM'},
+    {id:'dQw4w9WgXcQ', title:'TQM Total Quality Management Principles', channel:'Quality Management', topic:'TQM'},
+  ]
+};
+
+// ── STARTER FLASHCARDS ────────────────────────────────────────
+const STARTER_CARDS = [
+  {id:'fc-1',subject:'FACR',topic:'IAS 40',front:'Under IAS 40, where do Fair Value gains go under the Fair Value Model?',back:'Directly in Profit or Loss (P&L) — unlike IAS 16 revaluation gains which go to OCI. No depreciation is charged under FV model.',hint:'IAS 40 FV = P&L direct. IAS 16 revaluation = OCI.',mastered:false,easeFactor:2.5,intervalDays:0,repetitions:0,nextReviewAt:0},
+  {id:'fc-2',subject:'FACR',topic:'IAS 12',front:'When does a Deferred Tax Liability (DTL) arise?',back:'When Carrying Amount of asset > Tax Base (or Carrying Amount of liability < Tax Base). Future tax payments will be HIGHER.',hint:'Book value zyada = future mein zyada tax = DTL',mastered:false,easeFactor:2.5,intervalDays:0,repetitions:0,nextReviewAt:0},
+  {id:'fc-3',subject:'FACR',topic:'IFRS 3',front:'Full Goodwill Method — How is Goodwill calculated?',back:'Goodwill = Consideration Transferred + FV of NCI at acquisition − FV of Identifiable Net Assets acquired.',hint:'Parent pays + NCI FV − Net Assets FV',mastered:false,easeFactor:2.5,intervalDays:0,repetitions:0,nextReviewAt:0},
+  {id:'fc-4',subject:'BT',topic:'Capital Gains',front:'What is the holding period rule for Capital Gains Tax in Pakistan?',back:'Assets held ≤ 1 year: taxed at higher rate. Assets held > 1 year: reduced rate or exempt (depends on asset type). Property and securities have specific slabs.',hint:'Short holding = higher CGT. Long holding = reduced/exempt.',mastered:false,easeFactor:2.5,intervalDays:0,repetitions:0,nextReviewAt:0},
+  {id:'fc-5',subject:'OM',topic:'Balanced Scorecard',front:'Name the 4 perspectives of the Balanced Scorecard (BSC)',back:'1. Financial — Are we profitable?\n2. Customer — Do customers value us?\n3. Internal Process — Are our processes efficient?\n4. Learning & Growth — Can we improve and innovate?',hint:'FCIL — Financial, Customer, Internal, Learning',mastered:false,easeFactor:2.5,intervalDays:0,repetitions:0,nextReviewAt:0},
+  {id:'fc-6',subject:'OM',topic:'EOQ',front:'Write the Economic Order Quantity (EOQ) formula',back:'EOQ = √(2 × D × S / H)\nWhere: D = Annual Demand, S = Ordering Cost per order, H = Holding Cost per unit per year',hint:'Root of (2DS/H)',mastered:false,easeFactor:2.5,intervalDays:0,repetitions:0,nextReviewAt:0},
+];
+
+// ── READING CONTENT ────────────────────────────────────────────
+const READING_CONTENT = {
+  'IAS 40 Investment Property': `
+<h2>IAS 40 — Investment Property</h2>
+<div class="highlight">📌 Key Concept: Investment Property is land or building held for RENTAL INCOME or CAPITAL APPRECIATION — not for own use or sale in ordinary business.</div>
+<h3>What qualifies as Investment Property?</h3>
+<ul>
+  <li>Land held for long-term capital appreciation</li>
+  <li>Land held for currently undetermined future use</li>
+  <li>Building owned (or leased under finance lease) and leased out under operating leases</li>
+  <li>Building that is vacant but held to be leased under operating lease</li>
+</ul>
+<h3>What is NOT Investment Property?</h3>
+<ul>
+  <li>Owner-occupied property (use IAS 16)</li>
+  <li>Property held for sale in ordinary course of business (use IAS 2)</li>
+  <li>Property under construction for future IP (use IAS 40 on completion — IAS 11 during construction)</li>
+</ul>
+<h3>Measurement Models</h3>
+<p>After initial recognition, choose <strong>ONE policy</strong> for ALL investment property:</p>
+<div class="highlight">
+  <strong>Fair Value Model:</strong> Remeasure to Fair Value at each reporting date. Gains/losses → <code>Profit or Loss</code>. NO depreciation.
+</div>
+<div class="highlight">
+  <strong>Cost Model (IAS 16):</strong> Carry at Cost less Accumulated Depreciation less Impairment. Disclose Fair Value in notes.
+</div>
+<h3>Exam Trap ⚠️</h3>
+<p>Fair Value gains under IAS 40 go to <strong>P&L</strong> (not OCI). This is different from IAS 16 revaluation surplus which goes to OCI. This is a common ICMA exam trick!</p>
+<h3>Transfers</h3>
+<ul>
+  <li>IP → Owner-occupied: fair value at date of transfer becomes deemed cost under IAS 16</li>
+  <li>Owner-occupied → IP: use IAS 16 revaluation rules up to transfer date, then FV model</li>
+</ul>`,
+
+  'IAS 12 Deferred Tax': `
+<h2>IAS 12 — Income Taxes (Deferred Tax)</h2>
+<div class="highlight">📌 Deferred Tax arises because Accounting Profit ≠ Taxable Profit. Temporary differences between carrying amounts and tax bases create future tax obligations or assets.</div>
+<h3>Key Definitions</h3>
+<ul>
+  <li><strong>Carrying Amount:</strong> Value in financial statements (after depreciation/impairment)</li>
+  <li><strong>Tax Base:</strong> Value for tax purposes (after tax allowances)</li>
+  <li><strong>Temporary Difference:</strong> Carrying Amount − Tax Base</li>
+</ul>
+<h3>Deferred Tax Liability (DTL)</h3>
+<p>When <strong>Taxable Temporary Difference</strong> exists: CA of asset > Tax Base → Future taxable amount → Pay MORE tax later</p>
+<div class="highlight">DTL = Taxable Temp Diff × Tax Rate<br>Dr: Tax Expense (P&L) | Cr: DTL (Balance Sheet)</div>
+<h3>Deferred Tax Asset (DTA)</h3>
+<p>When <strong>Deductible Temporary Difference</strong> exists: CA of liability > Tax Base → Pay LESS tax later. Also from unused tax losses.</p>
+<div class="highlight">DTA = Deductible Temp Diff × Tax Rate<br>Dr: DTA (Balance Sheet) | Cr: Tax Expense (P&L)</div>
+<h3>Quick Formula</h3>
+<p>Asset: DTL if CA > Tax Base | DTA if CA < Tax Base<br>Liability: DTL if CA < Tax Base | DTA if CA > Tax Base</p>
+<h3>Exam Tips ⚠️</h3>
+<ul>
+  <li>Always use ENACTED tax rate (future rate if known)</li>
+  <li>DTA recognized only if future taxable profit is probable</li>
+  <li>Revaluation surplus on PPE creates DTL (unless no plan to sell)</li>
+  <li>Goodwill — no deferred tax on initial recognition</li>
+</ul>`,
+
+  'Balanced Scorecard': `
+<h2>The Balanced Scorecard (BSC)</h2>
+<div class="highlight">📌 BSC = A strategic management system that measures performance across FOUR perspectives — not just financial results. Developed by Kaplan & Norton (1992).</div>
+<h3>The Four Perspectives</h3>
+<p><strong>1. Financial Perspective</strong><br>Are we achieving our financial goals?<br>KPIs: ROI, Revenue Growth, Profit Margin, EVA, Cost Reduction</p>
+<p><strong>2. Customer Perspective</strong><br>Do customers value our products/services?<br>KPIs: Customer Satisfaction, Market Share, Customer Retention, NPS, Complaints</p>
+<p><strong>3. Internal Business Process Perspective</strong><br>Are our internal processes efficient and effective?<br>KPIs: Defect Rate, Cycle Time, Throughput, On-time Delivery, Process Efficiency</p>
+<p><strong>4. Learning & Growth Perspective</strong><br>Can we sustain and improve our ability to change?<br>KPIs: Employee Training Hours, Staff Turnover, Innovation Rate, IT System Uptime</p>
+<h3>Strategy Map</h3>
+<div class="highlight">Learning & Growth → enables → Internal Processes → satisfies → Customers → generates → Financial Results<br><em>Cause-and-effect chain (bottom to top)</em></div>
+<h3>Advantages</h3>
+<ul>
+  <li>Links strategy to operational activities</li>
+  <li>Balances short-term and long-term goals</li>
+  <li>Non-financial measures are leading indicators</li>
+  <li>Breaks down silos between departments</li>
+</ul>
+<h3>Limitations ⚠️</h3>
+<ul>
+  <li>Can become too complex (too many KPIs)</li>
+  <li>Difficult to implement in practice</li>
+  <li>Assumes cause-effect which may not exist</li>
+  <li>Not suitable for all organizations</li>
+</ul>
+<h3>Exam Memory Aid</h3>
+<p><code>FCIL</code> — Financial, Customer, Internal, Learning (top to bottom logic is reversed)</p>`
+};
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function switchView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.view === viewId);
+  });
+  const view = document.getElementById('view-' + viewId);
+  if (view) view.classList.add('active');
+  
+  // Initialize view if needed
+  if (viewId === 'dashboard') initDashboard();
+  if (viewId === 'mcq') initMCQSetup();
+  if (viewId === 'flashcards') renderFlashcard();
+  if (viewId === 'videos') initVideos();
+  if (viewId === 'reading') initReading();
+  if (viewId === 'pastpapers') initPastPapers();
+  if (viewId === 'planner') initPlanner();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LANGUAGE & VOICE
+// ═══════════════════════════════════════════════════════════
+function setLang(l) {
+  state.lang = l;
+  document.getElementById('langEn').classList.toggle('active', l==='en');
+  document.getElementById('langUr').classList.toggle('active', l==='ur');
+}
+
+function toggleVoice() {
+  state.voiceOn = !state.voiceOn;
+  if (!state.voiceOn) window.speechSynthesis?.cancel();
+  document.getElementById('voiceBtn').style.opacity = state.voiceOn ? '1' : '.4';
+  toast(state.voiceOn ? '🔊 Voice enabled' : '🔇 Voice disabled');
+}
+
+function speak(text) {
+  if (!state.voiceOn) return;
+  window.speechSynthesis?.cancel();
+  const utter = new SpeechSynthesisUtterance(text.slice(0,500));
+  utter.lang = state.lang === 'ur' ? 'ur-PK' : 'en-US';
+  const voices = window.speechSynthesis?.getVoices() || [];
+  const male = voices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('David') || v.name.includes('Google UK English Male'));
+  if (male) utter.voice = male;
+  utter.rate = 0.95; utter.pitch = 0.9;
+  window.speechSynthesis?.speak(utter);
+}
+
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Voice not supported in this browser', 'error'); return; }
+  const rec = new SR();
+  rec.lang = state.lang === 'ur' ? 'ur-PK' : 'en-US';
+  rec.onresult = e => {
+    const txt = e.results[0][0].transcript;
+    document.getElementById('tutorQuestion').value = txt;
+    switchView('tutor');
+  };
+  rec.start();
+  toast('🎙️ Listening...');
+}
+
+function startMicForTutor() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Voice not supported', 'error'); return; }
+  const rec = new SR();
+  rec.lang = state.lang === 'ur' ? 'ur-PK' : 'en-US';
+  rec.onresult = e => {
+    const txt = e.results[0][0].transcript;
+    document.getElementById('tutorQuestion').value = txt;
+  };
+  rec.start();
+  toast('🎙️ Listening...');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLAUDE API CALL
+// ═══════════════════════════════════════════════════════════
+async function callClaude(systemPrompt, userMessage, maxTokens = 1200) {
+  const response = await fetch(CLAUDE_API, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }]
+    })
+  });
+  if (!response.ok) throw new Error(`API Error ${response.status}`);
+  const data = await response.json();
+  return data.content[0]?.text || '';
+}
+
+async function callClaudeWithHistory(systemPrompt, history, maxTokens = 1500) {
+  const response = await fetch(CLAUDE_API, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: history
+    })
+  });
+  if (!response.ok) throw new Error(`API Error ${response.status}`);
+  const data = await response.json();
+  return data.content[0]?.text || '';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function initDashboard() {
+  updateCountdownKPI();
+  renderSubjectProgress();
+  renderTodayPlan();
+  renderAnalyticsCharts();
+  renderWeakAreas();
+}
+
+function updateCountdownKPI() {
+  const examDate = new Date('2026-12-05');
+  const now = new Date();
+  const days = Math.max(0, Math.ceil((examDate - now) / 86400000));
+  document.getElementById('daysRemaining').textContent = days;
+  document.getElementById('countDays').textContent = days;
+  
+  const weekdays = Math.floor(days * 5/7);
+  const weekends = days - weekdays;
+  const totalHours = weekdays * 3 + weekends * 6;
+  document.getElementById('countHours').textContent = totalHours;
+  document.getElementById('cardsReviewed').textContent = state.cardsReviewed;
+}
+
+function renderSubjectProgress() {
+  const container = document.getElementById('subjectProgressBars');
+  container.innerHTML = SUBJECTS.map(s => `
+    <div style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+        <div>
+          <span style="font-size:.8rem;font-weight:600;color:${s.color}">${s.code}</span>
+          <span style="font-size:.7rem;color:var(--text3);margin-left:.4rem">${s.name.split(' ').slice(0,3).join(' ')}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:.7rem;color:var(--text2)">Last quiz: ${s.lastQuiz}%</span>
+          <span style="font-family:var(--mono);font-size:.82rem;font-weight:700;color:${s.color}">${s.pct}%</span>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill ${s.pct < 40 ? 'rose' : s.pct < 65 ? 'amber' : 'green'}" style="width:${s.pct}%"></div>
+      </div>
+      <div style="font-size:.68rem;color:var(--text3);margin-top:.3rem">${s.verdict}</div>
+    </div>
+  `).join('');
+}
+
+function renderTodayPlan() {
+  const plan = [
+    {time:'17:30',sub:'OM',task:'Operations Strategy & Process Design — 60 min',done:false},
+    {time:'18:45',sub:'OM',task:'Balanced Scorecard 4 perspectives + 10 MCQs',done:false},
+    {time:'19:45',sub:'FACR',task:'IAS 40 Investment Property revision',done:false},
+    {time:'20:45',sub:'BT',task:'Property income worked example',done:false},
+  ];
+  document.getElementById('todayPlan').innerHTML = plan.map((p,i) => `
+    <div style="display:flex;align-items:center;gap:.7rem;padding:.6rem .75rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);margin-bottom:.4rem;cursor:pointer" onclick="toggleTodayTask(${i},this)">
+      <div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.65rem" class="task-check-${i}"></div>
+      <div style="font-family:var(--mono);font-size:.7rem;color:var(--cyan);flex-shrink:0">${p.time}</div>
+      <span class="badge badge-${p.sub==='FACR'?'cyan':p.sub==='BT'?'green':'amber'}" style="flex-shrink:0">${p.sub}</span>
+      <div style="font-size:.75rem;color:var(--text)">${p.task}</div>
+    </div>
+  `).join('');
+}
+
+function toggleTodayTask(i, el) {
+  const check = el.querySelector('[class^="task-check"]');
+  const isDone = check.textContent === '✓';
+  if (!isDone) {
+    check.textContent = '✓';
+    check.style.backgroundColor = 'rgba(52,211,153,.2)';
+    check.style.borderColor = 'var(--green)';
+    check.style.color = 'var(--green)';
+    el.style.opacity = '.6';
+    state.hoursToday += 1;
+    document.getElementById('hoursStudied').textContent = 20 + state.hoursToday;
+  } else {
+    check.textContent = '';
+    check.style.backgroundColor = '';
+    check.style.borderColor = '';
+    el.style.opacity = '1';
+  }
+}
+
+function renderAnalyticsCharts() {
+  // Hours chart
+  const maxH = Math.max(...ANALYTICS.hours, 1);
+  document.getElementById('hoursChart').innerHTML = ANALYTICS.hours.map((h,i) => {
+    const pct = Math.round(h/maxH*100);
+    const days = ['M','T','W','T','F','S','S'];
+    return `<div class="mini-bar-col" style="height:${pct}%;background:linear-gradient(to top,var(--cyan2),var(--cyan));opacity:${h>0?.9:.2}">
+      <div class="tooltip">${days[i]}: ${h}h</div>
+    </div>`;
+  }).join('');
+
+  // Accuracy chart
+  const maxA = 100;
+  document.getElementById('accuracyChart').innerHTML = ANALYTICS.accuracy.map((a,i) => {
+    const days = ['M','T','W','T','F','S','S'];
+    const col = a>=70?'var(--green)':a>=50?'var(--amber)':'var(--rose)';
+    return `<div class="mini-bar-col" style="height:${a}%;background:${col};opacity:${a>0?.9:.2}">
+      <div class="tooltip">${days[i]}: ${a}%</div>
+    </div>`;
+  }).join('');
+}
+
+function renderWeakAreas() {
+  const allWeak = SUBJECTS.flatMap(s => s.weak.map(w => ({sub:s.code,topic:w,color:s.color})));
+  document.getElementById('weakAreasList').innerHTML = allWeak.slice(0,6).map(w => `
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.72rem;cursor:pointer" onclick="quickStudy('${w.sub}','${w.topic}')">
+      <span style="width:4px;height:4px;border-radius:50%;background:${w.color};flex-shrink:0"></span>
+      <span style="color:var(--text2)">${w.sub}</span>
+      <span style="color:var(--text);flex:1">${w.topic}</span>
+    </div>
+  `).join('');
+}
+
+function quickStudy(sub, topic) {
+  state.tutorSubject = sub;
+  document.getElementById('tutorTopic').value = topic;
+  document.getElementById('tutorQuestion').value = `Explain "${topic}" with a worked example and ICMA exam tips.`;
+  switchView('tutor');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AI TUTOR
+// ═══════════════════════════════════════════════════════════
+function initTutorSubjectBtns() {
+  const container = document.getElementById('tutorSubjectBtns');
+  if (!container) return;
+  container.innerHTML = [...SUBJECTS.map(s => s.code), 'General AI'].map(code => `
+    <button class="topic-chip ${state.tutorSubject===code?'active':''}" onclick="selectTutorSubject('${code}',this)">${code}</button>
+  `).join('');
+  updateTutorWeakChips();
+}
+
+function selectTutorSubject(code, btn) {
+  state.tutorSubject = code;
+  document.querySelectorAll('#tutorSubjectBtns .topic-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateTutorWeakChips();
+  updateTutorSubInfo();
+}
+
+function updateTutorWeakChips() {
+  const container = document.getElementById('tutorWeakChips');
+  if (!container) return;
+  const sub = SUBJECTS.find(s => s.code === state.tutorSubject);
+  if (!sub) { container.innerHTML = ''; return; }
+  container.innerHTML = sub.weak.map(w => `
+    <button class="topic-chip weak" onclick="selectWeakTopic('${w}')">${w}</button>
+  `).join('');
+}
+
+function selectWeakTopic(topic) {
+  document.getElementById('tutorTopic').value = topic;
+  document.getElementById('tutorQuestion').value = `Explain "${topic}" step by step with a worked example and ICMA exam traps.`;
+  updateTutorSubInfo();
+}
+
+function setTutorLang(l, btn) {
+  state.tutorLang = l;
+  btn.closest('.pill-tabs').querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setTutorMode(m, btn) {
+  state.tutorMode = m;
+  btn.closest('.pill-tabs').querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setPersona(p, btn) {
+  state.tutorPersona = p;
+  btn.closest('.pill-tabs').querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function toggleWebSearch() {
+  state.webSearch = !state.webSearch;
+  document.getElementById('webSearchBtn').textContent = state.webSearch ? '🌐 Web ON' : '🌐 Web OFF';
+}
+
+function updateTutorSubInfo() {
+  const topic = document.getElementById('tutorTopic')?.value || '';
+  const el = document.getElementById('tutorSubInfo');
+  if (el) el.textContent = `${state.tutorSubject} — ${topic}`;
+}
+
+function clearChat() {
+  state.tutorHistory = [];
+  document.getElementById('tutorChat').innerHTML = '';
+}
+
+function appendChat(role, content) {
+  const feed = document.getElementById('tutorChat');
+  const div = document.createElement('div');
+  div.innerHTML = `
+    <div style="font-size:.68rem;font-family:var(--mono);font-weight:600;margin-bottom:.35rem;opacity:.7;color:${role==='user'?'var(--cyan)':'var(--purple)'}">${role==='user'?'SAIF ▸':'JARVIS ▸'}</div>
+    <div class="chat-bubble chat-${role}">${content.replace(/\n/g,'<br>')}</div>
+  `;
+  feed.appendChild(div);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+async function askTutor() {
+  const question = document.getElementById('tutorQuestion').value.trim();
+  const topic = document.getElementById('tutorTopic').value.trim();
+  if (!question && !topic) { toast('Enter a question first', 'error'); return; }
+
+  const btn = document.getElementById('askBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Thinking...`;
+
+  const q = question || `Explain ${topic} with an example.`;
+  appendChat('user', q);
+  document.getElementById('tutorQuestion').value = '';
+
+  const sub = SUBJECTS.find(s => s.code === state.tutorSubject);
+  const subName = sub ? sub.name : 'General';
+  
+  const langInstr = state.tutorLang === 'bilingual' ? 'Reply in English with Urdu explanations in brackets where helpful. e.g. "Fair Value (منصفانہ قدر)".' :
+    state.tutorLang === 'roman_urdu' ? 'Reply mostly in Roman Urdu (Urdu written in English letters). Be friendly and conversational.' :
+    'Reply in clear professional English.';
+
+  const modeInstr = {
+    explain: 'Give a clear, structured explanation with: 1) Core concept, 2) Real example, 3) Exam tips/traps, 4) Memory aide.',
+    quiz: 'Generate exactly 3 MCQs with options A-D and reveal the correct answer with explanation after each.',
+    socratic: 'Use Socratic method: guide with questions and hints rather than giving direct answers.',
+    plan: 'Create a detailed 60-90 minute study session breakdown with time slots and activities.',
+    flashcards: 'Create 5 flashcard-style Q&A pairs formatted as FRONT: [question] BACK: [answer]'
+  }[state.tutorMode] || '';
+
+  const personaInstr = {
+    tutor: 'You are Jarvis, a friendly and encouraging ICMA tutor for Pakistani students.',
+    examiner: 'You are a strict ICMA examiner. Be precise, formal, and point out exam marking criteria.',
+    coach: 'You are a motivating exam coach. Be energetic, practical, and focus on exam strategy.'
+  }[state.tutorPersona] || '';
+
+  const system = `${personaInstr} You are helping Saifullah Qureshi prepare for ICMA Managerial Level exams in Pakistan (FACR, BT, OM subjects). 
+${langInstr}
+${modeInstr}
+Current subject: ${subName}. Topic: ${topic || 'General'}.
+Be concise but thorough. Use emojis sparingly for key points. Format with clear structure.`;
+
+  state.tutorHistory.push({ role: 'user', content: q });
+
+  try {
+    const reply = await callClaudeWithHistory(system, state.tutorHistory, 1500);
+    state.tutorHistory.push({ role: 'assistant', content: reply });
+    appendChat('jarvis', reply);
+    speak(reply.slice(0, 400));
+  } catch(e) {
+    appendChat('jarvis', `⚠️ Error: ${e.message}. Please check your connection and try again.`);
+    toast('API Error — check network', 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Ask Jarvis`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  READING
+// ═══════════════════════════════════════════════════════════
+function initReading() {
+  const subBtns = document.getElementById('readSubjectBtns');
+  if (subBtns && !subBtns.children.length) {
+    subBtns.innerHTML = SUBJECTS.map(s => `
+      <button class="topic-chip ${state.readSubject===s.code?'active':''}" onclick="selectReadSubject('${s.code}',this)">${s.code}</button>
+    `).join('');
+  }
+  updateReadTopicSelect();
+}
+
+function selectReadSubject(code, btn) {
+  state.readSubject = code;
+  document.querySelectorAll('#readSubjectBtns .topic-chip').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  updateReadTopicSelect();
+}
+
+function updateReadTopicSelect() {
+  const sub = SUBJECTS.find(s => s.code === state.readSubject);
+  const sel = document.getElementById('readTopicSelect');
+  if (!sel || !sub) return;
+  sel.innerHTML = sub.topics.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+function updateReadTopic() {}
+function searchReadTopic() {
+  const q = document.getElementById('readTopicSearch').value.toLowerCase();
+  if (!q) return;
+  const sel = document.getElementById('readTopicSelect');
+  if (!sel) return;
+  for (const opt of sel.options) {
+    if (opt.text.toLowerCase().includes(q)) { opt.selected = true; break; }
+  }
+}
+
+function loadReading() {
+  const topic = document.getElementById('readTopicSelect')?.value || '';
+  if (!topic) return;
+  const content = READING_CONTENT[topic];
+  if (content) {
+    document.getElementById('readingContent').innerHTML = content;
+    toast(`📖 Loaded: ${topic}`);
+  } else {
+    generateReading();
+  }
+}
+
+async function generateReading() {
+  const topic = document.getElementById('readTopicSelect')?.value || document.getElementById('readTopicSearch')?.value || '';
+  if (!topic) { toast('Select a topic first', 'error'); return; }
+
+  document.getElementById('readingContent').innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text2)"><p>⌛ Generating AI reading material for <strong>${topic}</strong>...</p></div>`;
+
+  try {
+    const content = await callClaude(
+      `You are an expert ICMA tutor. Create detailed, well-structured reading material for ICMA Managerial Level students. Format using HTML with <h2>, <h3>, <p>, <ul>, <li> tags. Use <div class="highlight"> for important boxes. Use <code> for formulas. Be comprehensive but clear. Include: definition, key concepts, examples, exam tips.`,
+      `Create comprehensive reading material for: "${topic}" for ICMA Pakistan students. Include all key concepts, formulas, examples, and exam tips.`,
+      1800
+    );
+    document.getElementById('readingContent').innerHTML = content;
+    toast(`✅ AI reading generated for ${topic}`);
+  } catch(e) {
+    document.getElementById('readingContent').innerHTML = `<div style="color:var(--rose);padding:1rem">Error: ${e.message}</div>`;
+    toast('Failed to generate', 'error');
+  }
+}
+
+function changeFontSize(val) {
+  document.getElementById('readingContent').style.fontSize = val + 'px';
+  document.getElementById('fontSizeVal').textContent = val + 'px';
+}
+
+function toggleReadingTheme() {
+  const panel = document.getElementById('readingContent');
+  const isLight = panel.style.background === 'var(--text)';
+  panel.style.background = isLight ? '' : 'var(--text)';
+  panel.style.color = isLight ? '' : 'var(--bg)';
+}
+
+function speakReading() {
+  const text = document.getElementById('readingContent').innerText;
+  speak(text.slice(0, 600));
+  toast('🔊 Reading aloud...');
+}
+
+function switchToVideoForTopic() {
+  const topic = document.getElementById('readTopicSelect')?.value || '';
+  document.getElementById('videoSearch').value = topic;
+  switchView('videos');
+  searchVideos();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VIDEOS
+// ═══════════════════════════════════════════════════════════
+function initVideos() {
+  const filterDiv = document.getElementById('videoSubjectFilter');
+  if (filterDiv && !filterDiv.children.length) {
+    filterDiv.innerHTML = ['ALL', ...SUBJECTS.map(s=>s.code)].map(code => `
+      <button class="topic-chip ${state.videoSubjectFilter===code?'active':''}" onclick="filterVideos('${code}',this)">${code}</button>
+    `).join('');
+  }
+  renderVideos();
+}
+
+function filterVideos(code, btn) {
+  state.videoSubjectFilter = code;
+  document.querySelectorAll('#videoSubjectFilter .topic-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVideos();
+}
+
+function renderVideos() {
+  const q = document.getElementById('videoSearch')?.value?.toLowerCase() || '';
+  let vids = [];
+  
+  if (state.videoSubjectFilter === 'ALL') {
+    vids = Object.values(VIDEOS).flat();
+  } else {
+    vids = VIDEOS[state.videoSubjectFilter] || [];
+  }
+  
+  if (q) vids = vids.filter(v => v.title.toLowerCase().includes(q) || v.topic.toLowerCase().includes(q));
+
+  const grid = document.getElementById('videoGrid');
+  if (!grid) return;
+  
+  grid.innerHTML = vids.map((v,i) => `
+    <div class="card-sm" style="cursor:pointer;transition:transform .15s;border-color:var(--border2)" onclick="playVideo('${v.id}','${v.title.replace(/'/g,"\\'")}','${v.channel}')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+      <div style="background:var(--surface3);border-radius:var(--radius-sm);padding:2rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:center;position:relative">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:36px;height:36px;color:var(--rose)"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.03a8.16 8.16 0 004.77 1.52V7.1a4.85 4.85 0 01-1-.41z"/></svg>
+        <div style="position:absolute;top:.4rem;right:.4rem" class="badge badge-${['cyan','green','amber','purple'][i%4]}">${v.topic}</div>
+      </div>
+      <div style="font-size:.8rem;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:.35rem">${v.title}</div>
+      <div style="font-size:.7rem;color:var(--text3)">${v.channel}</div>
+    </div>
+  `).join('') || `<div style="color:var(--text2);padding:2rem;text-align:center;grid-column:1/-1">No videos found. Try a different search.</div>`;
+}
+
+function searchVideos() {
+  renderVideos();
+  
+  const q = document.getElementById('videoSearch')?.value;
+  if (q && q.length > 3) {
+    // Show "search YouTube" prompt since we can't iframe YouTube search
+    const grid = document.getElementById('videoGrid');
+    if (grid && grid.children.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1" class="card">
+        <p style="color:var(--text2);margin-bottom:.7rem">Search YouTube for: <strong style="color:var(--cyan)">${q} ICMA Pakistan</strong></p>
+        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(q+' ICMA accounting Pakistan')}" target="_blank" class="btn btn-primary" style="text-decoration:none">▶ Open YouTube Search</a>
+      </div>`;
+    }
+  }
+}
+
+function playVideo(id, title, channel) {
+  document.getElementById('videoPlayer').style.display = 'block';
+  document.getElementById('videoPlayerWrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" allow="autoplay;encrypted-media" allowfullscreen></iframe>`;
+  document.getElementById('videoTitle').textContent = title;
+  document.getElementById('videoChannel').textContent = channel;
+  document.getElementById('videoPlayer').scrollIntoView({behavior:'smooth'});
+  toast('▶ Playing video');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MCQ TESTS
+// ═══════════════════════════════════════════════════════════
+function initMCQSetup() {
+  const container = document.getElementById('mcqSubjectBtns');
+  if (!container || container.children.length) return;
+  container.innerHTML = [...SUBJECTS.map(s=>s.code), 'MIXED'].map(code => `
+    <button class="topic-chip ${state.mcqSubject===code?'active':''}" onclick="selectMCQSubject('${code}',this)">${code}</button>
+  `).join('');
+}
+
+function selectMCQSubject(code, btn) {
+  state.mcqSubject = code;
+  document.querySelectorAll('#mcqSubjectBtns .topic-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (code !== 'MIXED') {
+    const sub = SUBJECTS.find(s => s.code === code);
+    if (sub?.weak[0]) document.getElementById('mcqTopic').value = sub.weak.join(', ');
+  }
+}
+
+async function generateMCQ() {
+  const topic = document.getElementById('mcqTopic').value || 'mixed topics';
+  const count = parseInt(document.getElementById('mcqCount').value) || 10;
+  const diff = document.getElementById('mcqDifficulty').value;
+  const timed = document.getElementById('mcqTimed').checked;
+
+  document.getElementById('mcqSetup').innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text2)"><p>⌛ Generating ${count} ${diff} MCQs on ${topic}...</p><p style="margin-top:.5rem;font-size:.75rem">Jarvis is preparing your test...</p></div>`;
+
+  const sub = SUBJECTS.find(s => s.code === state.mcqSubject);
+  const subName = sub ? sub.name : 'ICMA subjects';
+
+  try {
+    const raw = await callClaude(
+      `You are an expert ICMA Pakistan examiner. Generate MCQ questions in JSON format only. Return a valid JSON array — no other text, no markdown, no explanation.`,
+      `Generate ${count} multiple-choice questions for ICMA ${subName} on topic: "${topic}". Difficulty: ${diff}.
+Return ONLY a JSON array like:
+[{"id":"q1","question":"...","options":["A) ...","B) ...","C) ...","D) ..."],"correctIndex":0,"explanation":"...","topic":"..."}]
+Make questions exam-standard. correctIndex is 0-3.`,
+      2000
+    );
+
+    let questions;
+    try {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      questions = JSON.parse(clean);
+    } catch(e) {
+      // Try to extract JSON
+      const match = raw.match(/\[[\s\S]*\]/);
+      if (match) questions = JSON.parse(match[0]);
+      else throw new Error('Could not parse questions');
+    }
+
+    state.mcqQuestions = questions;
+    state.mcqCurrentQ = 0;
+    state.mcqAnswers = new Array(questions.length).fill(null);
+    state.mcqType = { subject: state.mcqSubject, topic, timed };
+
+    document.getElementById('mcqSetup').innerHTML = `
+      <div style="max-width:600px;margin:0 auto">
+        <div class="card">
+          <div class="section-title">Configure MCQ Test</div>
+          <label>Subject</label>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem" id="mcqSubjectBtns"></div>
+          <label>Topic / Chapter Focus</label>
+          <input type="text" id="mcqTopic" value="${topic}" style="margin-bottom:.7rem"/>
+          <div class="grid2" style="margin-bottom:.7rem">
+            <div><label>Number of Questions</label>
+              <select id="mcqCount"><option value="5">5 questions</option><option value="10" selected>10 questions</option><option value="20">20 questions</option><option value="30">30 questions</option></select></div>
+            <div><label>Difficulty</label>
+              <select id="mcqDifficulty"><option value="beginner">Beginner</option><option value="intermediate" selected>Intermediate</option><option value="exam-standard">Exam Standard</option></select></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:1rem">
+            <input type="checkbox" id="mcqTimed" checked style="width:auto;padding:0"/>
+            <label for="mcqTimed" style="margin:0;cursor:pointer">Timed Mode (1.5 min/question)</label>
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="generateMCQ()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Generate AI MCQ Test</button>
+        </div>
+      </div>`;
+    initMCQSetup();
+    
+    showMCQQuestion();
+    if (timed) startMCQTimer();
+
+  } catch(e) {
+    document.getElementById('mcqSetup').innerHTML = `
+      <div style="max-width:600px;margin:0 auto">
+        <div class="card">
+          <div style="color:var(--rose);padding:.75rem;border-radius:var(--radius-sm);border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.08);margin-bottom:1rem">⚠️ Error: ${e.message}</div>
+          <button class="btn btn-primary" onclick="showMcqSetup()">Try Again</button>
+        </div>
+      </div>`;
+    toast('Failed to generate MCQs', 'error');
+  }
+}
+
+function showMCQQuestion() {
+  const q = state.mcqQuestions[state.mcqCurrentQ];
+  if (!q) return;
+
+  document.getElementById('mcqSetup').style.display = 'none';
+  document.getElementById('mcqActive').style.display = 'block';
+  document.getElementById('mcqResults').style.display = 'none';
+
+  document.getElementById('mcqSubjectBadge').textContent = state.mcqSubject;
+  document.getElementById('mcqProgressText').textContent = `Q ${state.mcqCurrentQ + 1} of ${state.mcqQuestions.length}`;
+  document.getElementById('mcqTopicLabel').textContent = q.topic || '';
+  document.getElementById('mcqQuestionText').textContent = q.question;
+  document.getElementById('mcqFeedback').style.display = 'none';
+  document.getElementById('mcqNextBtn').style.display = 'none';
+  document.getElementById('mcqSubmitBtn').style.display = 'inline-flex';
+
+  document.getElementById('mcqOptions').innerHTML = q.options.map((opt, i) => `
+    <button class="mcq-option" onclick="selectOption(${i},this)" id="mcqOpt${i}">
+      <span class="mcq-letter">${String.fromCharCode(65+i)}</span>
+      <span>${opt.replace(/^[A-D]\)\s*/,'')}</span>
+    </button>
+  `).join('');
+
+  if (state.mcqType?.timed) {
+    state.mcqSecondsLeft = 90;
+    updateTimerDisplay(90);
+  }
+}
+
+let selectedOption = null;
+function selectOption(i, btn) {
+  if (document.getElementById('mcqFeedback').style.display !== 'none') return;
+  document.querySelectorAll('.mcq-option').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedOption = i;
+}
+
+function submitAnswer() {
+  if (selectedOption === null) { toast('Select an answer first!', 'error'); return; }
+  
+  const q = state.mcqQuestions[state.mcqCurrentQ];
+  const isCorrect = selectedOption === q.correctIndex;
+  state.mcqAnswers[state.mcqCurrentQ] = { selected: selectedOption, correct: isCorrect };
+
+  // Style options
+  document.querySelectorAll('.mcq-option').forEach((btn, i) => {
+    btn.classList.add('answered');
+    if (i === q.correctIndex) btn.classList.add('correct');
+    else if (i === selectedOption && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const feedback = document.getElementById('mcqFeedback');
+  feedback.style.display = 'block';
+  feedback.style.borderColor = isCorrect ? 'rgba(52,211,153,.4)' : 'rgba(248,113,113,.4)';
+  feedback.style.background = isCorrect ? 'rgba(52,211,153,.08)' : 'rgba(248,113,113,.08)';
+  feedback.style.color = isCorrect ? 'var(--green)' : 'var(--rose)';
+  feedback.innerHTML = `${isCorrect ? '✅ Correct!' : '❌ Incorrect!'} ${q.explanation}`;
+
+  document.getElementById('mcqSubmitBtn').style.display = 'none';
+  document.getElementById('mcqNextBtn').style.display = 'inline-flex';
+  document.getElementById('mcqNextBtn').textContent = state.mcqCurrentQ < state.mcqQuestions.length - 1 ? 'Next Question →' : 'View Results';
+
+  selectedOption = null;
+  if (!isCorrect) speak(`Incorrect. ${q.explanation.slice(0,150)}`);
+  else speak('Correct!');
+}
+
+function nextMCQ() {
+  if (state.mcqCurrentQ < state.mcqQuestions.length - 1) {
+    state.mcqCurrentQ++;
+    showMCQQuestion();
+    if (state.mcqType?.timed) resetTimer();
+  } else {
+    endTest();
+  }
+}
+
+function endTest() {
+  clearInterval(state.mcqTimer);
+  showResults();
+}
+
+function showResults() {
+  document.getElementById('mcqActive').style.display = 'none';
+  document.getElementById('mcqResults').style.display = 'block';
+
+  const answered = state.mcqAnswers.filter(Boolean);
+  const correct = answered.filter(a => a.correct).length;
+  const total = state.mcqQuestions.length;
+  const pct = Math.round((correct / total) * 100);
+
+  document.getElementById('resultScore').textContent = `${pct}%`;
+  document.getElementById('resultLabel').textContent = pct >= 70 ? '🎉 Well Done, Saif!' : pct >= 50 ? '📚 Keep Studying' : '⚠️ Needs More Practice';
+  document.getElementById('resultDetail').textContent = `${correct} of ${total} correct`;
+
+  // Update subject score
+  const sub = SUBJECTS.find(s => s.code === state.mcqSubject);
+  if (sub) sub.lastQuiz = pct;
+
+  // Show review
+  document.getElementById('mcqReview').innerHTML = state.mcqQuestions.map((q, i) => {
+    const ans = state.mcqAnswers[i];
+    if (!ans) return '';
+    return `
+      <div class="pp-question" style="border-color:${ans.correct?'rgba(52,211,153,.3)':'rgba(248,113,113,.3)'}">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+          <span style="font-size:.72rem;color:var(--text2)">Q${i+1}: ${q.topic}</span>
+          <span style="font-size:.72rem;color:${ans.correct?'var(--green)':'var(--rose)'}">${ans.correct?'✅ Correct':'❌ Wrong'}</span>
+        </div>
+        <p style="font-size:.8rem;color:var(--text);margin-bottom:.5rem">${q.question}</p>
+        <p style="font-size:.75rem;color:var(--text2)">${q.explanation}</p>
+      </div>`;
+  }).join('');
+
+  toast(pct >= 70 ? '🎉 Great score!' : '📚 Review your mistakes');
+  speak(`Test complete. You scored ${pct} percent.`);
+  
+  // Update analytics
+  ANALYTICS.accuracy[6] = pct;
+  state.cardsReviewed += total;
+}
+
+function showMcqSetup() {
+  document.getElementById('mcqSetup').style.display = 'block';
+  document.getElementById('mcqActive').style.display = 'none';
+  document.getElementById('mcqResults').style.display = 'none';
+}
+
+function startMCQTimer() {
+  clearInterval(state.mcqTimer);
+  state.mcqSecondsLeft = 90;
+  state.mcqTimer = setInterval(() => {
+    state.mcqSecondsLeft--;
+    updateTimerDisplay(state.mcqSecondsLeft);
+    if (state.mcqSecondsLeft <= 0) {
+      clearInterval(state.mcqTimer);
+      if (!state.mcqAnswers[state.mcqCurrentQ]) {
+        state.mcqAnswers[state.mcqCurrentQ] = { selected: -1, correct: false };
+      }
+      nextMCQ();
+    }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(state.mcqTimer);
+  state.mcqSecondsLeft = 90;
+  state.mcqTimer = setInterval(() => {
+    state.mcqSecondsLeft--;
+    updateTimerDisplay(state.mcqSecondsLeft);
+    if (state.mcqSecondsLeft <= 0) {
+      clearInterval(state.mcqTimer);
+      nextMCQ();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(secs) {
+  const mins = Math.floor(secs / 60);
+  const s = secs % 60;
+  const el = document.getElementById('timerNum');
+  if (el) el.textContent = `${mins}:${String(s).padStart(2,'0')}`;
+  
+  const arc = document.getElementById('timerArc');
+  if (arc) {
+    const pct = secs / 90;
+    arc.style.strokeDashoffset = 213.6 * (1 - pct);
+    arc.style.stroke = secs < 20 ? 'var(--rose)' : secs < 40 ? 'var(--amber)' : 'var(--cyan)';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FLASHCARDS
+// ═══════════════════════════════════════════════════════════
+function initFlashcards() {
+  if (!state.fcCards.length) {
+    state.fcCards = [...STARTER_CARDS];
+  }
+  const filter = document.getElementById('fcSubjectFilter');
+  if (filter && !filter.children.length) {
+    filter.innerHTML = ['ALL',...SUBJECTS.map(s=>s.code)].map(code => `
+      <button class="topic-chip ${state.fcSubjectFilter===code?'active':''}" onclick="setFcFilter('${code}',this)">${code}</button>
+    `).join('');
+  }
+  filterCards();
+}
+
+function setFcFilter(code, btn) {
+  state.fcSubjectFilter = code;
+  document.querySelectorAll('#fcSubjectFilter .topic-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.fcCurrentIdx = 0;
+  filterCards();
+}
+
+function filterCards() {
+  const dueOnly = document.getElementById('fcDueOnly')?.checked;
+  const now = Date.now();
+  let cards = state.fcSubjectFilter === 'ALL' ? state.fcCards : state.fcCards.filter(c => c.subject === state.fcSubjectFilter);
+  if (dueOnly) cards = cards.filter(c => !c.nextReviewAt || c.nextReviewAt <= now);
+  state.fcFiltered = cards;
+  
+  const dueCount = state.fcCards.filter(c => !c.nextReviewAt || c.nextReviewAt <= now).length;
+  const dueEl = document.getElementById('fcDueCount');
+  if (dueEl) dueEl.textContent = dueCount;
+  
+  renderFlashcard();
+}
+
+function renderFlashcard() {
+  if (!state.fcFiltered.length) {
+    document.getElementById('fcFrontText').textContent = 'No cards to show. Generate new cards!';
+    document.getElementById('fcBackText').textContent = '';
+    document.getElementById('fcHintText').textContent = '';
+    document.getElementById('fcFrontLabel').textContent = '';
+    document.getElementById('fcCurrentIdx').textContent = '0';
+    document.getElementById('fcTotalCount').textContent = '0';
+    document.getElementById('fcMasteredCount').textContent = '0';
+    document.getElementById('fcMasteredBar').style.width = '0%';
+    document.getElementById('fcRating').style.display = 'none';
+    return;
+  }
+  
+  const idx = Math.min(state.fcCurrentIdx, state.fcFiltered.length - 1);
+  const card = state.fcFiltered[idx];
+  
+  document.getElementById('fcFrontLabel').textContent = `${card.subject} · ${card.topic}`;
+  document.getElementById('fcFrontText').textContent = card.front;
+  document.getElementById('fcBackText').textContent = card.back;
+  document.getElementById('fcHintText').textContent = card.hint ? `💡 ${card.hint}` : '';
+  document.getElementById('fcCurrentIdx').textContent = idx + 1;
+  document.getElementById('fcTotalCount').textContent = state.fcFiltered.length;
+  
+  const mastered = state.fcCards.filter(c => c.mastered).length;
+  document.getElementById('fcMasteredCount').textContent = mastered;
+  const pct = state.fcCards.length ? Math.round(mastered / state.fcCards.length * 100) : 0;
+  document.getElementById('fcMasteredBar').style.width = pct + '%';
+  
+  // Reset flip
+  state.fcFlipped = false;
+  document.getElementById('mainFlashcard').classList.remove('flipped');
+  document.getElementById('fcRating').style.display = 'none';
+}
+
+function flipCard() {
+  state.fcFlipped = !state.fcFlipped;
+  document.getElementById('mainFlashcard').classList.toggle('flipped', state.fcFlipped);
+  if (state.fcFlipped) {
+    document.getElementById('fcRating').style.display = 'block';
+    const card = state.fcFiltered[state.fcCurrentIdx];
+    if (card) speak(card.back.slice(0,200));
+  } else {
+    document.getElementById('fcRating').style.display = 'none';
+  }
+}
+
+function prevCard() {
+  if (state.fcCurrentIdx > 0) {
+    state.fcCurrentIdx--;
+    renderFlashcard();
+  }
+}
+
+function nextCard() {
+  if (state.fcCurrentIdx < state.fcFiltered.length - 1) {
+    state.fcCurrentIdx++;
+    renderFlashcard();
+  }
+}
+
+function rateCard(quality) {
+  const idx = state.fcCurrentIdx;
+  const card = state.fcFiltered[idx];
+  if (!card) return;
+  
+  // SM-2 scheduling
+  const prevEf = card.easeFactor || 2.5;
+  const prevReps = card.repetitions || 0;
+  const prevInt = card.intervalDays || 0;
+  
+  let nextReps, nextInterval, nextEf;
+  
+  if (quality === 0) {
+    nextReps = 0; nextInterval = 0;
+    nextEf = Math.max(1.3, prevEf - 0.2);
+  } else {
+    nextReps = prevReps + 1;
+    if (quality === 5) {
+      if (nextReps === 1) nextInterval = 4;
+      else if (nextReps === 2) nextInterval = 8;
+      else nextInterval = Math.max(4, Math.round(prevInt * (prevEf + 0.15)));
+    } else {
+      if (nextReps === 1) nextInterval = 1;
+      else if (nextReps === 2) nextInterval = 6;
+      else nextInterval = Math.max(2, Math.round(prevInt * prevEf));
+    }
+    nextEf = Math.max(1.3, prevEf + (quality === 5 ? 0.1 : -0.02));
+  }
+  
+  const updated = {
+    ...card,
+    repetitions: nextReps,
+    intervalDays: nextInterval,
+    easeFactor: nextEf,
+    nextReviewAt: Date.now() + nextInterval * 86400000,
+    mastered: nextInterval >= 6 || quality === 5
+  };
+  
+  const globalIdx = state.fcCards.findIndex(c => c.id === card.id);
+  if (globalIdx >= 0) state.fcCards[globalIdx] = updated;
+  
+  state.cardsReviewed++;
+  document.getElementById('cardsReviewed').textContent = state.cardsReviewed;
+  
+  if (state.fcCurrentIdx < state.fcFiltered.length - 1) {
+    state.fcCurrentIdx++;
+  }
+  filterCards();
+  toast(quality === 5 ? '✅ Mastered!' : quality === 3 ? '🤔 Good try' : '📚 Review again soon');
+}
+
+async function generateFlashcards() {
+  const sub = document.getElementById('fcGenSubject').value;
+  const topic = document.getElementById('fcGenTopic').value;
+  if (!topic) { toast('Enter a topic', 'error'); return; }
+  
+  toast('⌛ Generating flashcards...');
+  
+  try {
+    const raw = await callClaude(
+      'You are an ICMA exam flashcard creator. Return ONLY valid JSON — no markdown, no explanation.',
+      `Create 5 flashcards for ICMA ${sub} topic: "${topic}". 
+Return ONLY JSON: [{"front":"question","back":"detailed answer","hint":"memory tip"}]`,
+      1000
+    );
+    
+    let cards;
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const match = clean.match(/\[[\s\S]*\]/);
+    if (match) cards = JSON.parse(match[0]);
+    else cards = JSON.parse(clean);
+    
+    const newCards = cards.map((c, i) => ({
+      id: `fc-${Date.now()}-${i}`,
+      subject: sub, topic,
+      front: c.front, back: c.back, hint: c.hint || '',
+      mastered: false, easeFactor: 2.5, intervalDays: 0,
+      repetitions: 0, nextReviewAt: 0
+    }));
+    
+    state.fcCards = [...state.fcCards, ...newCards];
+    filterCards();
+    toast(`✅ Added ${newCards.length} new flashcards!`);
+  } catch(e) {
+    toast('Failed to generate flashcards', 'error');
+  }
+}
+
+function updateFcGenTopic() {
+  const sub = document.getElementById('fcGenSubject')?.value;
+  const found = SUBJECTS.find(s => s.code === sub);
+  if (found?.weak[0]) document.getElementById('fcGenTopic').value = found.weak[0];
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PAST PAPERS
+// ═══════════════════════════════════════════════════════════
+function initPastPapers() {
+  const container = document.getElementById('ppSubjectBtns');
+  if (!container || container.children.length) return;
+  container.innerHTML = SUBJECTS.map(s => `
+    <button class="topic-chip ${state.ppSubject===s.code?'active':''}" onclick="selectPPSubject('${s.code}',this)">${s.code}</button>
+  `).join('');
+}
+
+function selectPPSubject(code, btn) {
+  state.ppSubject = code;
+  document.querySelectorAll('#ppSubjectBtns .topic-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setPPType(t, btn) {
+  state.ppType = t;
+  btn.closest('.pill-tabs').querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function generatePastPaper() {
+  const sub = SUBJECTS.find(s => s.code === state.ppSubject);
+  const subName = sub?.name || 'ICMA';
+  
+  document.getElementById('ppTitle').textContent = `Generating ${state.ppType.toUpperCase()} paper...`;
+  document.getElementById('ppContent').innerHTML = '<div style="color:var(--text2);text-align:center;padding:2rem">⌛ Generating AI paper...</div>';
+  document.getElementById('ppAnswerArea').style.display = 'none';
+  document.getElementById('ppFeedback').style.display = 'none';
+
+  try {
+    let prompt = '';
+    if (state.ppType === 'mcq') {
+      prompt = `Generate 5 exam-standard MCQ questions for ICMA ${subName} similar to past papers. Format as numbered questions with A) B) C) D) options. Mark the correct answer separately after all questions.`;
+    } else if (state.ppType === 'numerical') {
+      prompt = `Generate a comprehensive numerical question for ICMA ${subName} similar to past exam papers. Include: scenario with figures, requirements (sub-parts), and suggested marks. This should be a 10-15 mark question.`;
+    } else {
+      prompt = `Generate a theory question for ICMA ${subName} similar to past papers. Include a 10-mark question requiring explanation, discussion, or application. Add marking scheme hints.`;
+    }
+
+    const content = await callClaude(
+      `You are an ICMA Pakistan examiner creating realistic past-paper style questions. Format clearly with numbered sections.`,
+      prompt, 1200
+    );
+
+    document.getElementById('ppTitle').textContent = `${state.ppSubject} — AI Practice Paper`;
+    document.getElementById('ppTimeBadge').style.display = 'inline-flex';
+    document.getElementById('ppTimeBadge').textContent = state.ppType === 'numerical' ? '⏱ 25 min' : '⏱ 15 min';
+    
+    document.getElementById('ppContent').innerHTML = `<div style="font-size:.82rem;line-height:1.75;color:var(--text);white-space:pre-wrap">${content}</div>`;
+    document.getElementById('ppAnswerArea').style.display = 'block';
+    state.ppCurrentQ = content;
+
+    toast('📄 Paper generated!');
+  } catch(e) {
+    document.getElementById('ppContent').innerHTML = `<div style="color:var(--rose)">Error: ${e.message}</div>`;
+    toast('Failed to generate paper', 'error');
+  }
+}
+
+async function loadPastPaper() {
+  const year = document.getElementById('ppYear').value;
+  if (year === 'ai-generated') {
+    return generatePastPaper();
+  }
+  document.getElementById('ppTitle').textContent = `${state.ppSubject} — ${year.replace('-',' ').toUpperCase()}`;
+  document.getElementById('ppContent').innerHTML = `
+    <div style="padding:1rem;color:var(--text2)">
+      <p style="margin-bottom:.6rem">📂 To access actual past papers:</p>
+      <ul style="padding-left:1.2rem">
+        <li style="margin-bottom:.4rem">Visit <a href="https://www.icmap.com.pk" target="_blank" style="color:var(--cyan)">ICMAP official website</a></li>
+        <li style="margin-bottom:.4rem">Download from student portal under "Past Examination Papers"</li>
+        <li>Upload your Google Drive study materials through the Drive connector</li>
+      </ul>
+      <button class="btn btn-primary" style="margin-top:.75rem" onclick="generatePastPaper()">✨ Use AI Practice Paper Instead</button>
+    </div>`;
+  document.getElementById('ppAnswerArea').style.display = 'none';
+}
+
+async function submitPPAnswer() {
+  const answer = document.getElementById('ppAnswer').value;
+  if (!answer.trim()) { toast('Write your answer first', 'error'); return; }
+  if (!state.ppCurrentQ) { toast('No question loaded', 'error'); return; }
+
+  const btn = document.querySelector('#ppAnswerArea .btn-primary');
+  btn.textContent = '⌛ Checking...';
+  btn.disabled = true;
+
+  try {
+    const feedback = await callClaude(
+      `You are an ICMA examiner providing detailed feedback on student answers. Be constructive and specific. Point out what's correct, what's missing, and how to improve.`,
+      `Question: ${state.ppCurrentQ}\n\nStudent Answer:\n${answer}\n\nProvide detailed marking feedback, award approximate marks, identify gaps, and give a model answer outline.`,
+      1200
+    );
+
+    document.getElementById('ppFeedback').style.display = 'block';
+    document.getElementById('ppFeedback').innerHTML = feedback.replace(/\n/g,'<br>');
+    document.getElementById('ppFeedback').scrollIntoView({behavior:'smooth'});
+    speak('Feedback ready. ' + feedback.slice(0,150));
+    toast('✅ Feedback ready!');
+  } catch(e) {
+    toast('Failed to get feedback', 'error');
+  }
+  
+  btn.textContent = 'Submit for AI Feedback';
+  btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STUDY PLANNER
+// ═══════════════════════════════════════════════════════════
+function initPlanner() {
+  updateCountdown();
+}
+
+function updateCountdown() {
+  const dateStr = document.getElementById('planExamDate')?.value || '2026-12-05';
+  const exam = new Date(dateStr);
+  const now = new Date();
+  const days = Math.max(0, Math.ceil((exam - now) / 86400000));
+  
+  if (document.getElementById('countDays')) document.getElementById('countDays').textContent = days;
+  if (document.getElementById('daysRemaining')) document.getElementById('daysRemaining').textContent = days;
+  
+  const wd = parseInt(document.getElementById('planWeekday')?.value || 3);
+  const we = parseInt(document.getElementById('planWeekend')?.value || 6);
+  const weekdays = Math.floor(days * 5/7);
+  const weekends = days - weekdays;
+  const totalHours = weekdays * wd + weekends * we;
+  if (document.getElementById('countHours')) document.getElementById('countHours').textContent = totalHours;
+}
+
+async function generatePlan() {
+  const examDate = document.getElementById('planExamDate').value;
+  const wd = parseInt(document.getElementById('planWeekday').value);
+  const we = parseInt(document.getElementById('planWeekend').value);
+  const startTime = document.getElementById('planStartTime').value;
+  
+  const exam = new Date(examDate);
+  const now = new Date();
+  const days = Math.max(1, Math.ceil((exam - now) / 86400000));
+  
+  document.getElementById('planDaysList').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text2)">⌛ Generating AI study plan...</div>';
+
+  try {
+    const raw = await callClaude(
+      `You are Jarvis, an intelligent ICMA study planner for Pakistani students. Create a practical, day-by-day study plan. Return JSON only — no other text.`,
+      `Create a ${Math.min(days, 7)}-day study plan for ICMA student Saifullah:
+- Subjects: FACR (52% ready, weak: IAS 40, Deferred Tax, Business Combinations), BT (64% ready, weak: Capital Gains, Property Income), OM (0% ready — emergency sprint for ALL topics)
+- ${days} days until exam (${examDate})
+- ${wd} hours/weekday after office hours (start ${startTime}), ${we} hours/weekend
+- Prioritize OM heavily, then FACR weak areas, then BT revision
+Return JSON: {"briefing":"Jarvis motivational briefing","days":[{"day":1,"date":"Mon Nov 24","theme":"OM Emergency Sprint","sessions":[{"time":"17:30","subject":"OM","task":"Operations Strategy & Process Design","type":"reading+mcq","hours":1.5}]}]}
+Return max 7 days. Each day: 1-3 sessions.`,
+      1800
+    );
+
+    let plan;
+    try {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      const match = clean.match(/\{[\s\S]*\}/);
+      plan = JSON.parse(match ? match[0] : clean);
+    } catch(e) {
+      throw new Error('Could not parse plan');
+    }
+
+    document.getElementById('planJarvisBriefing').textContent = plan.briefing || 'Your personalized plan is ready!';
+    
+    document.getElementById('planDaysList').innerHTML = (plan.days || []).map((day, di) => `
+      <div style="margin-bottom:1rem;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+        <div style="background:var(--surface2);padding:.65rem 1rem;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <span style="font-family:var(--mono);font-size:.8rem;color:var(--cyan);font-weight:600">Day ${day.day}</span>
+            <span style="font-size:.75rem;color:var(--text2);margin-left:.5rem">${day.date || ''}</span>
+          </div>
+          <span style="font-size:.72rem;color:var(--text3)">${day.theme || ''}</span>
+        </div>
+        ${(day.sessions || []).map((s, si) => `
+          <div style="display:flex;align-items:center;gap:.7rem;padding:.6rem 1rem;border-top:1px solid var(--border);cursor:pointer" onclick="togglePlanSession(${di},${si},this)">
+            <div style="width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;font-size:.6rem;display:flex;align-items:center;justify-content:center" class="plan-check"></div>
+            <span style="font-family:var(--mono);font-size:.7rem;color:var(--text3)">${s.time || ''}</span>
+            <span class="badge badge-${s.subject==='FACR'?'cyan':s.subject==='BT'?'green':'amber'}" style="flex-shrink:0">${s.subject}</span>
+            <span style="font-size:.75rem;color:var(--text);flex:1">${s.task}</span>
+            <span style="font-size:.7rem;color:var(--text3)">${s.hours}h</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+    
+    toast('✅ Study plan generated!');
+    speak(plan.briefing?.slice(0,200) || 'Your study plan is ready!');
+  } catch(e) {
+    document.getElementById('planDaysList').innerHTML = `<div style="color:var(--rose);padding:1rem">Error: ${e.message}</div>`;
+    toast('Failed to generate plan', 'error');
+  }
+}
+
+function togglePlanSession(dayIdx, sessionIdx, el) {
+  const check = el.querySelector('.plan-check');
+  const isDone = check.textContent === '✓';
+  if (!isDone) {
+    check.textContent = '✓';
+    check.style.backgroundColor = 'rgba(52,211,153,.2)';
+    check.style.borderColor = 'var(--green)';
+    check.style.color = 'var(--green)';
+    el.style.opacity = '.6';
+    state.hoursToday++;
+    if (document.getElementById('hoursStudied')) document.getElementById('hoursStudied').textContent = 20 + state.hoursToday;
+  } else {
+    check.textContent = '';
+    check.style.cssText = '';
+    el.style.opacity = '1';
+    state.hoursToday--;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type === 'success' ? '✓' : '⚠'}</span> ${msg}`;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GOOGLE DRIVE STUDY MATERIALS
+// ═══════════════════════════════════════════════════════════
+const DRIVE_MATERIALS = [
+  {
+    id:'folder-facr',
+    type:'folder',
+    name:'FACR Study Materials',
+    desc:'Financial Accounting & Corporate Reporting — notes, slides, examples',
+    url:'https://drive.google.com/drive/folders/1JRAADz_hSw7MLr4_Pl6fuhuyRhlyt3ex',
+    subject:'FACR',
+    icon:'📁'
+  },
+  {
+    id:'file-bt-notes',
+    type:'pdf',
+    name:'Business Taxation Notes',
+    desc:'BT comprehensive notes — income tax, CGT, sales tax',
+    url:'https://drive.google.com/file/d/1C976hWaHp0S8gjrjMIe5M64p1IkmJ1JW/view?usp=drivesdk',
+    subject:'BT',
+    icon:'📄'
+  },
+  {
+    id:'file-om-notes',
+    type:'pdf',
+    name:'Operations Management Notes',
+    desc:'OM notes — strategy, BSC, lean, SCM, quality management',
+    url:'https://drive.google.com/file/d/1bKnRRG5h6hCmga7EBbN37vGbxiuMSvcS/view?usp=drivesdk',
+    subject:'OM',
+    icon:'📄'
+  },
+  {
+    id:'folder-pastpapers',
+    type:'folder',
+    name:'Past Papers Folder',
+    desc:'ICMA past examination papers — multiple sessions',
+    url:'https://drive.google.com/drive/folders/1trJJR26p772Twd0O7hFuzl-uRCtqDRzx',
+    subject:'ALL',
+    icon:'📁'
+  },
+  {
+    id:'folder-extras',
+    type:'folder',
+    name:'Extra Study Resources',
+    desc:'Additional reference materials and supplementary notes',
+    url:'https://drive.google.com/drive/folders/1cSJry6g8mBLEz0slwzLHyz-UyiGkvfXM',
+    subject:'ALL',
+    icon:'📁'
+  },
+  {
+    id:'doc-revision',
+    type:'doc',
+    name:'Revision Notes Document',
+    desc:'Google Doc — consolidated revision notes and summaries',
+    url:'https://docs.google.com/document/d/1wZP3HFOlBIjIZJzw82Z_-yT7yeuuYfZYh3IVE3G3NJQ/edit?usp=drivesdk',
+    subject:'ALL',
+    icon:'📝'
+  }
+];
+
+function initDriveMaterials() {
+  const list = document.getElementById('driveMaterialsList');
+  if (!list) return;
+  list.innerHTML = DRIVE_MATERIALS.map(m => `
+    <div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);transition:border-color .15s" onmouseover="this.style.borderColor='var(--cyan-dim)'" onmouseout="this.style.borderColor='var(--border2)'">
+      <span style="font-size:1.1rem;flex-shrink:0">${m.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
+        <div style="font-size:.68rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.desc}</div>
+      </div>
+      <span class="badge badge-${m.subject==='FACR'?'cyan':m.subject==='BT'?'green':m.subject==='OM'?'amber':'purple'}" style="flex-shrink:0;font-size:.62rem">${m.subject}</span>
+      <div style="display:flex;gap:.3rem;flex-shrink:0">
+        <a href="${m.url}" target="_blank" title="Open in Google Drive" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--cyan);text-decoration:none;font-size:.7rem;transition:all .15s" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        ${m.type==='doc'||m.type==='pdf'?`<button title="View inline" onclick="viewDriveMaterial('${m.id}')" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s;font-size:.7rem" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function viewDriveMaterial(id) {
+  const mat = DRIVE_MATERIALS.find(m => m.id === id);
+  if (!mat) return;
+
+  let embedUrl = '';
+  if (mat.type === 'doc') {
+    embedUrl = mat.url.replace('/edit?usp=drivesdk','').replace('/edit','') + '/preview';
+  } else if (mat.type === 'pdf') {
+    const fileId = mat.url.match(/\/d\/([^/]+)/)?.[1];
+    embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+
+  if (!embedUrl) { window.open(mat.url,'_blank'); return; }
+
+  openFullscreen('drive-doc', {
+    title: mat.name,
+    sub: mat.subject,
+    embedUrl
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FULLSCREEN ENGINE
+// ═══════════════════════════════════════════════════════════
+let fsState = { mode: null, data: null };
+
+function openFullscreen(mode, data = {}) {
+  fsState = { mode, data };
+  const overlay = document.getElementById('fsOverlay');
+  const content = document.getElementById('fsContent');
+  const titleText = document.getElementById('fsTitleText');
+  const titleSub = document.getElementById('fsTitleSub');
+  const topbarActions = document.getElementById('fsTopbarActions');
+
+  overlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  // Reset content scroll class
+  content.className = 'fs-body';
+
+  const closeBtn = `<button class="fs-close-btn" onclick="closeFullscreen()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/></svg>
+    Exit Fullscreen
+  </button>`;
+
+  if (mode === 'reading') {
+    titleText.textContent = '📖 Reading';
+    const topic = document.getElementById('readTopicSelect')?.value || 'Study Material';
+    titleSub.textContent = topic;
+    topbarActions.innerHTML = `
+      <button class="fs-trigger" onclick="speakReading()">🔊 Read Aloud</button>
+      <button class="fs-trigger" onclick="toggleReadingTheme()">🌙 Theme</button>
+      ${closeBtn}`;
+    content.innerHTML = `<div class="fs-reading reading-panel">${document.getElementById('readingContent').innerHTML}</div>`;
+  }
+
+  else if (mode === 'video') {
+    titleText.textContent = '▶ Video';
+    titleSub.textContent = document.getElementById('videoTitle')?.textContent || '';
+    topbarActions.innerHTML = closeBtn;
+    content.className = 'fs-body-noscroll';
+    content.innerHTML = `
+      <div style="flex:1;display:flex;flex-direction:column;padding:1rem;gap:.75rem;max-width:1100px;margin:0 auto;width:100%">
+        <div class="fs-video-wrap" style="flex:1">
+          ${document.getElementById('videoPlayerWrap')?.innerHTML || '<p style="color:var(--text2);text-align:center;padding:3rem">No video playing. Go to Videos tab and play one first.</p>'}
+        </div>
+        <div>
+          <div style="font-size:.88rem;font-weight:600;color:var(--text)">${document.getElementById('videoTitle')?.textContent||''}</div>
+          <div style="font-size:.75rem;color:var(--text2)">${document.getElementById('videoChannel')?.textContent||''}</div>
+        </div>
+      </div>`;
+  }
+
+  else if (mode === 'mcq') {
+    titleText.textContent = '✅ MCQ Focus Mode';
+    titleSub.textContent = document.getElementById('mcqProgressText')?.textContent || '';
+    topbarActions.innerHTML = `<button class="btn btn-danger" style="font-size:.75rem;padding:.35rem .8rem" onclick="endTest();closeFullscreen()">End Test</button>${closeBtn}`;
+    content.innerHTML = `
+      <div class="fs-mcq-center">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+          <span class="badge badge-cyan" id="fsMcqBadge">${document.getElementById('mcqSubjectBadge')?.textContent||''}</span>
+          <span style="font-size:.88rem;color:var(--text2)" id="fsMcqProgress">${document.getElementById('mcqProgressText')?.textContent||''}</span>
+        </div>
+        <div class="card" id="fsMcqCard">
+          <div style="font-size:.72rem;color:var(--text3);font-family:var(--mono);margin-bottom:.75rem" id="fsMcqTopicLabel">${document.getElementById('mcqTopicLabel')?.textContent||''}</div>
+          <p style="font-size:.95rem;font-weight:500;line-height:1.65;color:var(--text);margin-bottom:1.5rem" id="fsMcqQuestion">${document.getElementById('mcqQuestionText')?.textContent||''}</p>
+          <div id="fsMcqOptions">${document.getElementById('mcqOptions')?.innerHTML||''}</div>
+          <div id="fsMcqFeedback" style="display:none;margin-top:.9rem;padding:.9rem;border-radius:var(--radius-sm);border:1px solid;font-size:.82rem;line-height:1.6"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem">
+            <div style="font-size:.75rem;color:var(--text3)">Select an answer, then submit</div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-primary" id="fsMcqNextBtn" onclick="nextMCQFromFs()" style="display:none">Next →</button>
+              <button class="btn btn-secondary" id="fsMcqSubmitBtn" onclick="submitAnswerFromFs()">Submit Answer</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    // Wire option clicks in fullscreen
+    document.querySelectorAll('#fsMcqOptions .mcq-option').forEach((btn, i) => {
+      btn.onclick = () => selectOptionFs(i, btn);
+    });
+  }
+
+  else if (mode === 'dashboard') {
+    titleText.textContent = '📊 Progress Dashboard';
+    titleSub.textContent = 'Full Analytics View';
+    topbarActions.innerHTML = closeBtn;
+    content.innerHTML = buildFullDashboard();
+  }
+
+  else if (mode === 'drive-doc') {
+    titleText.textContent = data.title || 'Study Material';
+    titleSub.textContent = data.sub || '';
+    topbarActions.innerHTML = `
+      <a href="${data.embedUrl?.replace('/preview','')}" target="_blank" class="fs-trigger">↗ Open in Drive</a>
+      ${closeBtn}`;
+    content.className = 'fs-body-noscroll';
+    content.innerHTML = `
+      <div style="flex:1;display:flex;flex-direction:column;padding:.75rem;height:100%">
+        <iframe src="${data.embedUrl}" style="width:100%;flex:1;border:none;border-radius:var(--radius);background:var(--surface2)" allow="autoplay"></iframe>
+      </div>`;
+  }
+
+  // Press Escape to close
+  document.addEventListener('keydown', fsEscHandler);
+}
+
+function fsEscHandler(e) {
+  if (e.key === 'Escape') closeFullscreen();
+}
+
+function closeFullscreen() {
+  document.getElementById('fsOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', fsEscHandler);
+  fsState = { mode: null, data: null };
+}
+
+function buildFullDashboard() {
+  const subjectBars = SUBJECTS.map(s => {
+    const pctBar = s.pct;
+    const col = pctBar < 40 ? 'rose' : pctBar < 65 ? 'amber' : 'green';
+    return `
+      <div style="margin-bottom:1.1rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:.85rem;font-weight:700;color:${s.color}">${s.code}</span>
+            <span style="font-size:.72rem;color:var(--text3)">${s.name}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.7rem">
+            <span style="font-size:.72rem;color:var(--text3)">Last quiz: ${s.lastQuiz}%</span>
+            <span style="font-family:var(--mono);font-size:.88rem;font-weight:700;color:${s.color}">${s.pct}%</span>
+          </div>
+        </div>
+        <div class="progress-bar" style="height:10px"><div class="progress-fill ${col}" style="width:${pctBar}%"></div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem">
+          ${s.strong.map(w => `<span class="badge badge-green" style="font-size:.62rem">✓ ${w}</span>`).join('')}
+          ${s.weak.map(w => `<span class="badge badge-rose" style="font-size:.62rem">⚠ ${w}</span>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  const examDate = new Date('2026-12-05');
+  const now = new Date();
+  const daysLeft = Math.max(0, Math.ceil((examDate - now) / 86400000));
+  const avgPct = Math.round(SUBJECTS.reduce((a,s) => a + s.pct, 0) / SUBJECTS.length);
+  const totalHrs = SUBJECTS.reduce((a,s) => a + s.hours, 0);
+
+  const days7 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const hoursBars = ANALYTICS.hours.map((h, i) => {
+    const maxH = Math.max(...ANALYTICS.hours, 1);
+    const pct = Math.round(h / maxH * 100);
+    return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:.3rem">
+      <div style="font-size:.62rem;color:var(--text3)">${h}h</div>
+      <div style="flex:1;width:100%;background:var(--surface3);border-radius:4px;overflow:hidden;min-height:60px;display:flex;align-items:flex-end">
+        <div style="width:100%;height:${pct}%;background:linear-gradient(to top,var(--cyan2),var(--cyan));border-radius:4px;min-height:${h>0?4:0}px"></div>
+      </div>
+      <div style="font-size:.62rem;color:var(--text3)">${days7[i]}</div>
+    </div>`;
+  }).join('');
+
+  const accBars = ANALYTICS.accuracy.map((a, i) => {
+    const col = a>=70?'var(--green)':a>=50?'var(--amber)':'var(--rose)';
+    return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:.3rem">
+      <div style="font-size:.62rem;color:var(--text3)">${a>0?a+'%':'-'}</div>
+      <div style="flex:1;width:100%;background:var(--surface3);border-radius:4px;overflow:hidden;min-height:60px;display:flex;align-items:flex-end">
+        <div style="width:100%;height:${a}%;background:${col};border-radius:4px;min-height:${a>0?4:0}px"></div>
+      </div>
+      <div style="font-size:.62rem;color:var(--text3)">${days7[i]}</div>
+    </div>`;
+  }).join('');
+
+  // Radar points for subject readiness
+  const radarData = [
+    {label:'FACR\n52%', pct:52, angle:270},
+    {label:'BT\n64%',   pct:64, angle:30},
+    {label:'OM\n0%',    pct:0,  angle:150},
+  ];
+  const cx=140, cy=140, r=100;
+  const radarPoints = radarData.map(d => {
+    const a = (d.angle - 90) * Math.PI / 180;
+    const rr = r * d.pct / 100;
+    return `${cx + rr * Math.cos(a)},${cy + rr * Math.sin(a)}`;
+  }).join(' ');
+  const radarOutline = radarData.map(d => {
+    const a = (d.angle - 90) * Math.PI / 180;
+    return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+  }).join(' ');
+  const radarAxes = radarData.map(d => {
+    const a = (d.angle - 90) * Math.PI / 180;
+    const lx = cx + (r+28) * Math.cos(a);
+    const ly = cy + (r+28) * Math.sin(a);
+    const ex = cx + r * Math.cos(a);
+    const ey = cy + r * Math.sin(a);
+    return `<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--border2)" stroke-width="1"/>
+      <text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="var(--text2)" font-size="11" font-family="Inter,sans-serif">${d.label}</text>`;
+  }).join('');
+
+  const weakAll = SUBJECTS.flatMap(s => s.weak.map(w => ({sub:s.code,w,color:s.color})));
+
+  return `
+    <div style="max-width:1200px;margin:0 auto;width:100%">
+      <!-- KPI Row -->
+      <div class="dash-kpi-row">
+        <div class="stat-card c-cyan">
+          <div class="stat-num" style="color:var(--cyan)">${daysLeft}</div>
+          <div class="stat-label">Days to Exam</div>
+          <div class="stat-sub">Dec 5, 2026</div>
+        </div>
+        <div class="stat-card c-green">
+          <div class="stat-num" style="color:var(--green)">${avgPct}%</div>
+          <div class="stat-label">Avg Prep Score</div>
+          <div class="stat-sub">3 subjects</div>
+        </div>
+        <div class="stat-card c-amber">
+          <div class="stat-num" style="color:var(--amber)">${totalHrs}</div>
+          <div class="stat-label">Hours Logged</div>
+          <div class="stat-sub">Total so far</div>
+        </div>
+        <div class="stat-card c-rose">
+          <div class="stat-num" style="color:var(--rose)">${SUBJECTS.filter(s=>s.pct<50).length}</div>
+          <div class="stat-label">At-Risk Subjects</div>
+          <div class="stat-sub">Below 50%</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+        <!-- Subject Progress -->
+        <div class="card" style="grid-column:span 2">
+          <div class="section-title" style="margin-bottom:1rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            Subject Readiness
+          </div>
+          ${subjectBars}
+        </div>
+
+        <!-- Radar Chart -->
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div class="section-title" style="margin-bottom:.5rem;text-align:center;justify-content:center">Subject Radar</div>
+          <svg viewBox="0 0 280 280" style="width:100%;max-width:260px">
+            <polygon points="${radarOutline}" fill="none" stroke="var(--border2)" stroke-width="1"/>
+            <polygon points="${radarOutline.split(' ').map(p=>{const[x,y]=p.split(',');return `${140+(x-140)*.5},${140+(y-140)*.5}`}).join(' ')}" fill="none" stroke="var(--border)" stroke-width="1"/>
+            <polygon points="${radarPoints}" fill="rgba(56,189,248,.15)" stroke="var(--cyan)" stroke-width="2"/>
+            ${radarAxes}
+            ${radarData.map(d=>{
+              const a=(d.angle-90)*Math.PI/180;
+              const rr=r*d.pct/100;
+              const px=cx+rr*Math.cos(a), py=cy+rr*Math.sin(a);
+              return `<circle cx="${px}" cy="${py}" r="4" fill="var(--cyan)"/>`;
+            }).join('')}
+          </svg>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+        <div class="chart-col">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:.75rem">📅 Daily Study Hours</div>
+          <div style="display:flex;align-items:flex-end;gap:.4rem;height:100px">${hoursBars}</div>
+        </div>
+        <div class="chart-col">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:.75rem">🎯 MCQ Accuracy %</div>
+          <div style="display:flex;align-items:flex-end;gap:.4rem;height:100px">${accBars}</div>
+        </div>
+        <div class="chart-col">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:.75rem">⚠️ Weak Areas Priority</div>
+          ${weakAll.slice(0,8).map((w,i)=>`
+            <div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.72rem">
+              <span style="font-size:.7rem;color:var(--rose);font-weight:700">${i+1}</span>
+              <span style="color:${w.color};font-weight:600;font-size:.7rem;flex-shrink:0">${w.sub}</span>
+              <span style="color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${w.w}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Exam Countdown Timeline -->
+      <div class="card">
+        <div class="section-title">📆 ${daysLeft}-Day Countdown — Required Daily Hours</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.5rem;margin-top:.5rem">
+          ${Array.from({length:Math.min(daysLeft,14)},(_,i)=>{
+            const d=new Date(); d.setDate(d.getDate()+i);
+            const isWE=d.getDay()===0||d.getDay()===6;
+            const hrs=isWE?6:3;
+            const dayName=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+            return `<div style="text-align:center;padding:.6rem .4rem;border-radius:var(--radius-sm);background:${isWE?'rgba(167,139,250,.08)':'rgba(56,189,248,.06)'};border:1px solid ${isWE?'rgba(167,139,250,.2)':'rgba(56,189,248,.12)'}">
+              <div style="font-size:.62rem;color:var(--text3)">${dayName} ${d.getDate()}</div>
+              <div style="font-size:1.1rem;font-weight:800;font-family:var(--mono);color:${isWE?'var(--purple)':'var(--cyan)'}">${hrs}h</div>
+              <div style="font-size:.6rem;color:var(--text3)">${isWE?'Weekend':'Weekday'}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+// Fullscreen MCQ helpers (mirror main MCQ but in overlay)
+let fsSelectedOption = null;
+function selectOptionFs(i, btn) {
+  document.querySelectorAll('#fsMcqOptions .mcq-option').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  fsSelectedOption = i;
+}
+
+function submitAnswerFromFs() {
+  if (fsSelectedOption === null) { toast('Select an answer!', 'error'); return; }
+  // Mirror the main submit logic
+  selectedOption = fsSelectedOption;
+  submitAnswer();
+  // Sync feedback to fullscreen
+  setTimeout(() => {
+    const fb = document.getElementById('mcqFeedback');
+    const fsFb = document.getElementById('fsMcqFeedback');
+    if (fb && fsFb) {
+      fsFb.style.display = fb.style.display;
+      fsFb.style.borderColor = fb.style.borderColor;
+      fsFb.style.background = fb.style.background;
+      fsFb.style.color = fb.style.color;
+      fsFb.innerHTML = fb.innerHTML;
+    }
+    document.getElementById('fsMcqSubmitBtn').style.display = 'none';
+    document.getElementById('fsMcqNextBtn').style.display = 'inline-flex';
+    document.getElementById('fsMcqProgress').textContent = document.getElementById('mcqProgressText')?.textContent || '';
+    // Update progress in topbar
+    document.getElementById('fsTitleSub').textContent = document.getElementById('mcqProgressText')?.textContent || '';
+  }, 50);
+}
+
+function nextMCQFromFs() {
+  nextMCQ();
+  // If test ended, close FS and show results
+  if (document.getElementById('mcqResults').style.display !== 'none') {
+    closeFullscreen();
+    return;
+  }
+  // Re-render question in fullscreen
+  setTimeout(() => {
+    const q = state.mcqQuestions[state.mcqCurrentQ];
+    if (!q) return;
+    document.getElementById('fsMcqQuestion').textContent = q.question;
+    document.getElementById('fsMcqTopicLabel').textContent = q.topic || '';
+    document.getElementById('fsMcqOptions').innerHTML = document.getElementById('mcqOptions').innerHTML;
+    document.getElementById('fsMcqFeedback').style.display = 'none';
+    document.getElementById('fsMcqSubmitBtn').style.display = 'inline-flex';
+    document.getElementById('fsMcqNextBtn').style.display = 'none';
+    document.getElementById('fsMcqProgress').textContent = document.getElementById('mcqProgressText')?.textContent || '';
+    document.getElementById('fsTitleSub').textContent = document.getElementById('mcqProgressText')?.textContent || '';
+    document.querySelectorAll('#fsMcqOptions .mcq-option').forEach((btn, i) => {
+      btn.onclick = () => selectOptionFs(i, btn);
+    });
+    fsSelectedOption = null;
+  }, 60);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SPIN ANIMATION
+// ═══════════════════════════════════════════════════════════
+const style = document.createElement('style');
+style.textContent = `@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`;
+document.head.appendChild(style);
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+function init() {
+  state.fcCards = [...STARTER_CARDS];
+  state.fcFiltered = [...STARTER_CARDS];
+  
+  initDashboard();
+  initTutorSubjectBtns();
+  initMCQSetup();
+  initFlashcards();
+  initReading();
+  initVideos();
+  initPastPapers();
+  initPlanner();
+  
+  // Set all subject-based button groups
+  ['readSubjectBtns','tutorSubjectBtns','mcqSubjectBtns','ppSubjectBtns','videoSubjectFilter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.children.length) {
+      // Will be initialized by their respective init functions
+    }
+  });
+  
+  // Drive materials
+  initDriveMaterials();
+
+  // PWA register
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('data:text/javascript,').catch(() => {});
+  }
+  
+  toast('🚀 ICMA Study Portal Ready — Jarvis Online');
+  speak('Welcome back Saif. Your ICMA study portal is ready. Good luck!');
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

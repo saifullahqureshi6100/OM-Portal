@@ -1,0 +1,371 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Account settings, planner configuration, gamification XP, streak, badges, and learned topic tracking for an ICMA M3 candidate.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID owning this profile."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Student display name or study alias."
+        },
+        "examDateMillis": {
+          "type": "integer",
+          "description": "Target ICMA M3 exam date in UTC epoch milliseconds."
+        },
+        "dailyTargetHours": {
+          "type": "number",
+          "description": "Planned daily study hours."
+        },
+        "studyDaysPerWeek": {
+          "type": "integer",
+          "description": "Number of study days planned per week (1-7)."
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "enum": ["ENGLISH", "BILINGUAL_URDU", "ROMAN_URDU"],
+          "description": "Preferred Tuto-Jarvis tutor language mode."
+        },
+        "preferredTeachingMode": {
+          "type": "string",
+          "description": "Preferred Tuto-Jarvis teaching style."
+        },
+        "darkModeEnabled": {
+          "type": "boolean",
+          "description": "Whether dark mode is preferred."
+        },
+        "voiceEnabled": {
+          "type": "boolean",
+          "description": "Whether TextToSpeech Voice Tutor is enabled."
+        },
+        "leaderboardOptIn": {
+          "type": "boolean",
+          "description": "Whether the user opted in to appear on the public M3 leaderboard."
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Total gamification XP earned."
+        },
+        "streakDays": {
+          "type": "integer",
+          "description": "Current consecutive study streak in days."
+        },
+        "lastStudyDate": {
+          "type": "string",
+          "description": "Last active study date in ISO YYYY-MM-DD format."
+        },
+        "totalStudyMinutes": {
+          "type": "integer",
+          "description": "Cumulative logged study minutes."
+        },
+        "srsReviewsCount": {
+          "type": "integer",
+          "description": "Total spaced repetition reviews completed."
+        },
+        "earnedBadges": {
+          "type": "array",
+          "description": "Unlocked gamification badge IDs."
+        },
+        "learnedTopics": {
+          "type": "array",
+          "description": "Topic IDs practiced or learned with Tuto-Jarvis."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "examDateMillis",
+        "dailyTargetHours",
+        "studyDaysPerWeek",
+        "preferredLanguage",
+        "preferredTeachingMode",
+        "darkModeEnabled",
+        "voiceEnabled",
+        "leaderboardOptIn",
+        "xp",
+        "streakDays",
+        "lastStudyDate",
+        "totalStudyMinutes",
+        "srsReviewsCount",
+        "earnedBadges",
+        "learnedTopics",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "TopicProgress": {
+      "title": "TopicProgress",
+      "description": "Per-topic mastery, SM-2 spaced repetition schedule, quiz accuracy, bookmarks, and pasted student notes.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID."
+        },
+        "partId": {
+          "type": "string",
+          "enum": ["PART_A", "PART_B", "PART_C", "PART_D"],
+          "description": "Official M3 syllabus part identifier."
+        },
+        "masteryState": {
+          "type": "string",
+          "enum": ["NOT_STARTED", "LEARNING", "NEEDS_WORK", "REVISION_REQUIRED", "MASTERED"],
+          "description": "Current topic mastery classification."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the student marked the topic completed."
+        },
+        "bookmarked": {
+          "type": "boolean",
+          "description": "Whether the topic is bookmarked."
+        },
+        "easeFactor": {
+          "type": "number",
+          "description": "SM-2 ease factor (1.3 to 5.0)."
+        },
+        "intervalDays": {
+          "type": "integer",
+          "description": "Scheduled review interval in days."
+        },
+        "repetitions": {
+          "type": "integer",
+          "description": "Successful consecutive SRS repetitions."
+        },
+        "lapses": {
+          "type": "integer",
+          "description": "Number of SRS lapses (Again)."
+        },
+        "nextReviewAtMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds when the next SRS review is due."
+        },
+        "lastReviewedAtMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds of the last SRS review."
+        },
+        "correctCount": {
+          "type": "integer",
+          "description": "Correct MCQ answers for this topic."
+        },
+        "attemptCount": {
+          "type": "integer",
+          "description": "Total MCQ attempts for this topic."
+        },
+        "studyMinutes": {
+          "type": "integer",
+          "description": "Minutes studied on this topic."
+        },
+        "userNotes": {
+          "type": "string",
+          "description": "User-pasted or imported study material notes for this topic."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "partId",
+        "masteryState",
+        "completed",
+        "bookmarked",
+        "easeFactor",
+        "intervalDays",
+        "repetitions",
+        "lapses",
+        "nextReviewAtMillis",
+        "lastReviewedAtMillis",
+        "correctCount",
+        "attemptCount",
+        "studyMinutes",
+        "userNotes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ExamAttempt": {
+      "title": "ExamAttempt",
+      "description": "Persisted practice quiz or weighted full mock exam result.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID."
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["MOCK_EXAM", "PRACTICE_QUIZ"],
+          "description": "Assessment mode."
+        },
+        "totalQuestions": {
+          "type": "integer"
+        },
+        "correctCount": {
+          "type": "integer"
+        },
+        "incorrectCount": {
+          "type": "integer"
+        },
+        "skippedCount": {
+          "type": "integer"
+        },
+        "scorePercent": {
+          "type": "integer"
+        },
+        "durationSeconds": {
+          "type": "integer"
+        },
+        "xpEarned": {
+          "type": "integer"
+        },
+        "partACorrect": {
+          "type": "integer"
+        },
+        "partATotal": {
+          "type": "integer"
+        },
+        "partBCorrect": {
+          "type": "integer"
+        },
+        "partBTotal": {
+          "type": "integer"
+        },
+        "partCCorrect": {
+          "type": "integer"
+        },
+        "partCTotal": {
+          "type": "integer"
+        },
+        "partDCorrect": {
+          "type": "integer"
+        },
+        "partDTotal": {
+          "type": "integer"
+        },
+        "weakTopicIds": {
+          "type": "array",
+          "description": "Topic IDs missed in this attempt."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "mode",
+        "totalQuestions",
+        "correctCount",
+        "incorrectCount",
+        "skippedCount",
+        "scorePercent",
+        "durationSeconds",
+        "xpEarned",
+        "partACorrect",
+        "partATotal",
+        "partBCorrect",
+        "partBTotal",
+        "partCCorrect",
+        "partCTotal",
+        "partDCorrect",
+        "partDTotal",
+        "weakTopicIds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public opt-in gamification standing containing no PII.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "xp": {
+          "type": "integer"
+        },
+        "streakDays": {
+          "type": "integer"
+        },
+        "badgeCount": {
+          "type": "integer"
+        },
+        "masteredCount": {
+          "type": "integer"
+        },
+        "optedIn": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "xp",
+        "streakDays",
+        "badgeCount",
+        "masteredCount",
+        "optedIn",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile/{profileId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User-owned profile, study planner settings, XP, streaks, and badges."
+    },
+    "/users/{userId}/topicProgress/{topicId}": {
+      "schema": { "$ref": "#/entities/TopicProgress" },
+      "description": "User-owned topic mastery, SM-2 SRS schedule, and pasted topic notes."
+    },
+    "/users/{userId}/examHistory/{attemptId}": {
+      "schema": { "$ref": "#/entities/ExamAttempt" },
+      "description": "User-owned mock exam and practice test history."
+    },
+    "/leaderboard/{userId}": {
+      "schema": { "$ref": "#/entities/LeaderboardEntry" },
+      "description": "Opt-in public gamification leaderboard entries without PII."
+    }
+  }
+}

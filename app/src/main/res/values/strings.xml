@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">ICMA M3 Prep</string>
+    <string name="app_subtitle">Managerial Level-1 · Paper M3</string>
+    <string name="syllabus_scheme">Organizational Management (2025 Scheme)</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_study">Study</string>
+    <string name="nav_jarvis">Jarvis</string>
+    <string name="nav_exams">Exams</string>
+    <string name="nav_plan">Plan &amp; Rank</string>
+    <string name="offline_tutor_notice">Offline Syllabus Tutor (Local Knowledge Base)</string>
+    <string name="ai_tutor_notice">Tuto-Jarvis AI (Gemini 3.8 Flash)</string>
+    <string name="voice_unavailable">No text-to-speech voices available on this device.</string>
+</resources>

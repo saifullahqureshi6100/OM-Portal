@@ -1,0 +1,249 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidStringList(listVal, maxLen) {
+      return listVal is list &&
+             listVal.size() <= maxLen &&
+             (listVal.size() == 0 || (listVal[0] is string && listVal[0].size() <= 64));
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 50 &&
+             data.examDateMillis is int && data.examDateMillis >= 0 &&
+             (data.dailyTargetHours is float || data.dailyTargetHours is int) &&
+             data.dailyTargetHours >= 0.5 && data.dailyTargetHours <= 16.0 &&
+             data.studyDaysPerWeek is int && data.studyDaysPerWeek >= 1 && data.studyDaysPerWeek <= 7 &&
+             data.preferredLanguage in ['ENGLISH', 'BILINGUAL_URDU', 'ROMAN_URDU'] &&
+             data.preferredTeachingMode is string && data.preferredTeachingMode.size() >= 1 && data.preferredTeachingMode.size() <= 40 &&
+             data.darkModeEnabled is bool &&
+             data.voiceEnabled is bool &&
+             data.leaderboardOptIn is bool &&
+             data.xp is int && data.xp >= 0 && data.xp <= 10000000 &&
+             data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 10000 &&
+             data.lastStudyDate is string && data.lastStudyDate.size() <= 20 &&
+             data.totalStudyMinutes is int && data.totalStudyMinutes >= 0 && data.totalStudyMinutes <= 1000000 &&
+             data.srsReviewsCount is int && data.srsReviewsCount >= 0 && data.srsReviewsCount <= 1000000 &&
+             isValidStringList(data.earnedBadges, 30) &&
+             isValidStringList(data.learnedTopics, 60) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidTopicProgress(data, userId) {
+      return data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+             data.partId in ['PART_A', 'PART_B', 'PART_C', 'PART_D'] &&
+             data.masteryState in ['NOT_STARTED', 'LEARNING', 'NEEDS_WORK', 'REVISION_REQUIRED', 'MASTERED'] &&
+             data.completed is bool &&
+             data.bookmarked is bool &&
+             (data.easeFactor is float || data.easeFactor is int) &&
+             data.easeFactor >= 1.3 && data.easeFactor <= 5.0 &&
+             data.intervalDays is int && data.intervalDays >= 0 && data.intervalDays <= 3650 &&
+             data.repetitions is int && data.repetitions >= 0 && data.repetitions <= 10000 &&
+             data.lapses is int && data.lapses >= 0 && data.lapses <= 10000 &&
+             data.nextReviewAtMillis is int && data.nextReviewAtMillis >= 0 &&
+             data.lastReviewedAtMillis is int && data.lastReviewedAtMillis >= 0 &&
+             data.correctCount is int && data.correctCount >= 0 && data.correctCount <= 100000 &&
+             data.attemptCount is int && data.attemptCount >= 0 && data.attemptCount <= 100000 &&
+             data.studyMinutes is int && data.studyMinutes >= 0 && data.studyMinutes <= 100000 &&
+             data.userNotes is string && data.userNotes.size() <= 10000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidExamAttempt(data, userId) {
+      return data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+             data.mode in ['MOCK_EXAM', 'PRACTICE_QUIZ'] &&
+             data.totalQuestions is int && data.totalQuestions >= 1 && data.totalQuestions <= 100 &&
+             data.correctCount is int && data.correctCount >= 0 && data.correctCount <= 100 &&
+             data.incorrectCount is int && data.incorrectCount >= 0 && data.incorrectCount <= 100 &&
+             data.skippedCount is int && data.skippedCount >= 0 && data.skippedCount <= 100 &&
+             data.scorePercent is int && data.scorePercent >= 0 && data.scorePercent <= 100 &&
+             data.durationSeconds is int && data.durationSeconds >= 0 && data.durationSeconds <= 36000 &&
+             data.xpEarned is int && data.xpEarned >= 0 && data.xpEarned <= 2000 &&
+             data.partACorrect is int && data.partACorrect >= 0 && data.partACorrect <= 100 &&
+             data.partATotal is int && data.partATotal >= 0 && data.partATotal <= 100 &&
+             data.partBCorrect is int && data.partBCorrect >= 0 && data.partBCorrect <= 100 &&
+             data.partBTotal is int && data.partBTotal >= 0 && data.partBTotal <= 100 &&
+             data.partCCorrect is int && data.partCCorrect >= 0 && data.partCCorrect <= 100 &&
+             data.partCTotal is int && data.partCTotal >= 0 && data.partCTotal <= 100 &&
+             data.partDCorrect is int && data.partDCorrect >= 0 && data.partDCorrect <= 100 &&
+             data.partDTotal is int && data.partDTotal >= 0 && data.partDTotal <= 100 &&
+             isValidStringList(data.weakTopicIds, 56) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidLeaderboardEntry(data, userId) {
+      return data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 50 &&
+             data.xp is int && data.xp >= 0 && data.xp <= 10000000 &&
+             data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 10000 &&
+             data.badgeCount is int && data.badgeCount >= 0 && data.badgeCount <= 50 &&
+             data.masteredCount is int && data.masteredCount >= 0 && data.masteredCount <= 56 &&
+             data.optedIn is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // 3. User-Owned Profile, Progress & Exam History
+    match /users/{userId} {
+      allow read, write: if false;
+
+      match /profile/{profileId} {
+        allow get: if isOwner(userId) && isValidId(profileId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(profileId) &&
+                         profileId == 'main' &&
+                         incoming().keys().hasAll([
+                           'userId', 'displayName', 'examDateMillis', 'dailyTargetHours',
+                           'studyDaysPerWeek', 'preferredLanguage', 'preferredTeachingMode',
+                           'darkModeEnabled', 'voiceEnabled', 'leaderboardOptIn', 'xp',
+                           'streakDays', 'lastStudyDate', 'totalStudyMinutes', 'srsReviewsCount',
+                           'earnedBadges', 'learnedTopics', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'displayName', 'examDateMillis', 'dailyTargetHours',
+                           'studyDaysPerWeek', 'preferredLanguage', 'preferredTeachingMode',
+                           'darkModeEnabled', 'voiceEnabled', 'leaderboardOptIn', 'xp',
+                           'streakDays', 'lastStudyDate', 'totalStudyMinutes', 'srsReviewsCount',
+                           'earnedBadges', 'learnedTopics', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidUserProfile(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(profileId) &&
+                         profileId == 'main' &&
+                         isValidUserProfile(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'displayName', 'examDateMillis', 'dailyTargetHours',
+                           'studyDaysPerWeek', 'preferredLanguage', 'preferredTeachingMode',
+                           'darkModeEnabled', 'voiceEnabled', 'leaderboardOptIn', 'xp',
+                           'streakDays', 'lastStudyDate', 'totalStudyMinutes', 'srsReviewsCount',
+                           'earnedBadges', 'learnedTopics', 'updatedAt'
+                         ]);
+        allow delete: if isOwner(userId) && isValidId(profileId);
+      }
+
+      match /topicProgress/{topicId} {
+        allow get: if isOwner(userId) && isValidId(topicId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(topicId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'partId', 'masteryState', 'completed', 'bookmarked',
+                           'easeFactor', 'intervalDays', 'repetitions', 'lapses',
+                           'nextReviewAtMillis', 'lastReviewedAtMillis', 'correctCount',
+                           'attemptCount', 'studyMinutes', 'userNotes', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'partId', 'masteryState', 'completed', 'bookmarked',
+                           'easeFactor', 'intervalDays', 'repetitions', 'lapses',
+                           'nextReviewAtMillis', 'lastReviewedAtMillis', 'correctCount',
+                           'attemptCount', 'studyMinutes', 'userNotes', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidTopicProgress(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(topicId) &&
+                         isValidTopicProgress(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().partId == existing().partId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'masteryState', 'completed', 'bookmarked',
+                           'easeFactor', 'intervalDays', 'repetitions', 'lapses',
+                           'nextReviewAtMillis', 'lastReviewedAtMillis', 'correctCount',
+                           'attemptCount', 'studyMinutes', 'userNotes', 'updatedAt'
+                         ]);
+        allow delete: if isOwner(userId) && isValidId(topicId);
+      }
+
+      match /examHistory/{attemptId} {
+        allow get: if isOwner(userId) && isValidId(attemptId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(attemptId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'mode', 'totalQuestions', 'correctCount', 'incorrectCount',
+                           'skippedCount', 'scorePercent', 'durationSeconds', 'xpEarned',
+                           'partACorrect', 'partATotal', 'partBCorrect', 'partBTotal',
+                           'partCCorrect', 'partCTotal', 'partDCorrect', 'partDTotal',
+                           'weakTopicIds', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'mode', 'totalQuestions', 'correctCount', 'incorrectCount',
+                           'skippedCount', 'scorePercent', 'durationSeconds', 'xpEarned',
+                           'partACorrect', 'partATotal', 'partBCorrect', 'partBTotal',
+                           'partCCorrect', 'partCTotal', 'partDCorrect', 'partDTotal',
+                           'weakTopicIds', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidExamAttempt(incoming(), userId);
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(attemptId);
+      }
+    }
+
+    // 4. Opt-In Public Leaderboard (No PII)
+    match /leaderboard/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) &&
+                    ((resource == null && request.auth.uid == userId) ||
+                     (resource != null && (resource.data.optedIn == true || request.auth.uid == userId)));
+      allow list: if isSignedIn() && resource.data.optedIn == true;
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'xp', 'streakDays', 'badgeCount',
+                         'masteredCount', 'optedIn', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'xp', 'streakDays', 'badgeCount',
+                         'masteredCount', 'optedIn', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidLeaderboardEntry(incoming(), userId);
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidLeaderboardEntry(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'xp', 'streakDays', 'badgeCount',
+                         'masteredCount', 'optedIn', 'updatedAt'
+                       ]);
+      allow delete: if isOwner(userId) && isValidId(userId);
+    }
+  }
+}

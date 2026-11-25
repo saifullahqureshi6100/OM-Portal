@@ -1,0 +1,6 @@
+{
+  "name": "ICMA M3 Prep",
+  "description": "AI-powered study portal for ICMA Pakistan ML-1 Paper M3 Organizational Management (2025 Scheme) with Google Sign-In cloud sync, spaced repetition, gamification, mock exams, and Tuto-Jarvis AI Tutor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
