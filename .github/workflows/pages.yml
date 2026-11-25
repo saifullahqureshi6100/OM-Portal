@@ -1,15 +1,19 @@
 name: Deploy OM Portal to GitHub Pages
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: true
+
 jobs:
   deploy:
     environment:
@@ -18,9 +22,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Package static PWA files
+        run: |
+          mkdir -p _site
+          for f in index.html style.css app.js manifest.webmanifest sw.js icon.svg; do
+            if [ -f "$f" ]; then cp "$f" _site/; fi
+          done
+
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
+
       - id: deployment
         uses: actions/deploy-pages@v4
