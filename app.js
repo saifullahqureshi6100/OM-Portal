@@ -272,7 +272,7 @@ function render(){
   const pages={dashboard:renderDashboard,study:renderStudy,plan:renderPlan,tutor:renderTutor,videos:renderVideos,settings:renderSettings};
   const page=pages[state.page]?state.page:'dashboard';
   state.page=page;
-  app.innerHTML='<header class="app-header"><a href="#" class="brand" data-action="nav" data-page="dashboard"><span class="brand-mark">OM</span><span><b>ICMA STUDY PORTAL</b><small>Managerial Level-1 · M3</small></span></a><div class="header-actions"><span class="offline-pill"><i></i> Offline ready</span><button class="icon-btn" aria-label="Settings" data-action="nav" data-page="settings">⚙</button></div></header>'
+  app.innerHTML='<header class="app-header"><a href="#" class="brand" data-action="nav" data-page="dashboard"><span class="brand-mark">OM</span><span><b>ICMA STUDY PORTAL</b><small>Managerial Level-1 · M3</small></span></a><div class="header-actions"><span class="offline-pill"><i></i> Offline ready</span><button class="btn btn-small btn-outline" id="install-button" data-action="install">Install app</button><button class="icon-btn" aria-label="Settings" data-action="nav" data-page="settings">⚙</button></div></header>'
     +'<div class="app-shell"><aside class="sidebar"><div class="side-caption">STUDY WORKSPACE</div>'+navButton('dashboard','Overview','◫')+navButton('study','Syllabus','▤')+navButton('plan','Exam plans','▦')+navButton('tutor','Urdu voice tutor','◖')+navButton('videos','Video clips','▷')+'<div class="side-divider"></div><div class="side-caption">PREFERENCES</div>'+navButton('settings','AI & settings','⚙')+'<div class="sidebar-progress"><div class="small-row"><span>Overall progress</span><b>'+overallPercent()+'%</b></div>'+progressBar(overallPercent())+'<small>'+countDone()+' of '+allTopics().length+' topics complete</small></div></aside>'
     +'<main class="main-content">'+pages[page]()+'<footer class="app-footer">ICMA M3 · Organizational Management <span>Progress is stored locally on this device</span></footer></main></div>'
     +'<nav class="mobile-nav">'+navButton('dashboard','Home','◫')+navButton('study','Study','▤')+navButton('plan','Plan','▦')+navButton('tutor','Tutor','◖')+navButton('videos','Videos','▷')+'</nav><div id="toast" class="toast" role="status" aria-live="polite"></div>';
@@ -385,6 +385,7 @@ function updateDashboardNumbers(){}
 document.getElementById('app').addEventListener('click',async function(event){
   const button=event.target.closest('[data-action]'); if(!button) return;
   const action=button.dataset.action;
+  if(action==='install'){installApp();return;}
   if(action==='nav'){state.page=button.dataset.page;state.reader=null;render();return;}
   if(action==='part'){state.activePart=button.dataset.part;render();return;}
   if(action==='open-part'){state.activePart=button.dataset.part;state.page='study';render();return;}
