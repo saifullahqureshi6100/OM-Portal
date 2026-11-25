@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "ICMA OM Study Portal",
+  "short_name": "OM Portal",
+  "description": "Installable offline-ready ICMA Pakistan M3 Organizational Management study portal with Urdu voice explanations.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07111d",
+  "theme_color": "#07111d",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {"src": "/icon.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable"},
+    {"src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
