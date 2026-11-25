@@ -189,7 +189,7 @@ function renderPlan(){
   const options=[{days:1,label:'1-day emergency revision',desc:'A rapid final review of every topic and key distinction.'},{days:3,label:'3-day crash plan',desc:'High-priority coverage, practice and a final revision round.'},{days:7,label:'7-day intensive plan',desc:'Balanced topic coverage with daily recall and MCQ practice.'},{days:14,label:'14-day balanced plan',desc:'More time for learning, written practice and spaced revision.'}];
   return '<section class="page-intro"><div class="eyebrow">EXAM PREPARATION</div><h1>Choose your preparation plan</h1><p>Select the time available before your exam. The plan uses the syllabus weightings, gives extra time to Operations Management and schedules revision.</p></section>'
     +'<section class="plan-options">'+options.map(function(o){return '<button class="plan-option '+(plan&&plan.days===o.days?'chosen':'')+'" data-action="choose-plan" data-days="'+o.days+'"><span class="plan-days">'+o.days+'<small>days</small></span><span class="plan-option-copy"><b>'+o.label+'</b><small>'+o.desc+'</small></span><span class="plan-arrow">→</span></button>';}).join('')+'</section>'
-    +'<section class="panel plan-config"><div class="section-head compact"><div><div class="eyebrow">MAKE IT PERSONAL</div><h2>Daily study capacity</h2></div></div><div class="form-grid"><label>Hours available each day<select id="plan-hours"><option value="1">1 hour</option><option value="2" selected>2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="5">5 hours</option><option value="6">6 hours</option><option value="8">8 hours</option></select></label><label>Exam date (optional)<input id="exam-date" type="date" min="'+localDateKey(new Date())+'" value="'+(plan&&plan.examDate?esc(plan.examDate):'')+'"></label></div>'
+    +'<section class="panel plan-config"><div class="section-head compact"><div><div class="eyebrow">MAKE IT PERSONAL</div><h2>Daily study capacity</h2></div></div><div class="form-grid"><label>Hours available each day<select id="plan-hours"><option value="1" '+(plan&&plan.hours===1?'selected':'')+'>1 hour</option><option value="2" '+(plan&&plan.hours===2?'selected':'')+'>2 hours</option><option value="3" '+(plan&&plan.hours===3?'selected':'')+'>3 hours</option><option value="4" '+(plan&&plan.hours===4?'selected':'')+'>4 hours</option><option value="5" '+(plan&&plan.hours===5?'selected':'')+'>5 hours</option><option value="6" '+(plan&&plan.hours===6?'selected':'')+'>6 hours</option><option value="8" '+(plan&&plan.hours===8?'selected':'')+'>8 hours</option></select></label><label>Exam date (optional)<input id="exam-date" type="date" min="'+localDateKey(new Date())+'" value="'+(plan&&plan.examDate?esc(plan.examDate):'')+'"></label></div>'
     +'<button class="btn btn-primary" data-action="generate-plan" '+(!plan?'':'')+'>Generate my study timetable</button></section>'
     +(plan?renderPlanSchedule(plan):'<div class="empty-state"><span>▦</span><h3>Your timetable will appear here</h3><p>Choose a plan above, set your daily study hours and generate your schedule.</p></div>');
 }
@@ -314,6 +314,15 @@ function openReader(topic, text){
   const shell=document.getElementById('reader-shell');
   if(shell&&shell.requestFullscreen){shell.requestFullscreen().catch(function(){});}
 }
+function adjustReaderFont(delta){
+  const wasFullscreen=!!document.fullscreenElement;
+  state.reader.fontSize=Math.max(0.95,Math.min(1.8,state.reader.fontSize+delta));
+  render();
+  if(wasFullscreen){
+    const shell=document.getElementById('reader-shell');
+    if(shell&&shell.requestFullscreen) shell.requestFullscreen().catch(function(){});
+  }
+}
 function closeReader(){
   state.reader=null;
   if(document.fullscreenElement&&document.exitFullscreen){document.exitFullscreen().catch(function(){});}
@@ -364,16 +373,19 @@ function youtubeSearchUrl(title){
   return 'https://www.youtube.com/results?search_query='+encodeURIComponent(title+' organizational management lecture Urdu');
 }
 function extractYoutubeId(value){
+  let id='';
   try{
     const u=new URL(value);
-    if(u.hostname==='youtu.be') return u.pathname.split('/').filter(Boolean)[0]||'';
-    if(u.hostname.endsWith('youtube.com')){
-      if(u.searchParams.get('v')) return u.searchParams.get('v');
-      const parts=u.pathname.split('/').filter(Boolean);
-      if(parts[0]==='embed'||parts[0]==='shorts') return parts[1]||'';
+    if(u.hostname==='youtu.be') id=u.pathname.split('/').filter(Boolean)[0]||'';
+    else if(u.hostname.endsWith('youtube.com')){
+      if(u.searchParams.get('v')) id=u.searchParams.get('v');
+      else{
+        const parts=u.pathname.split('/').filter(Boolean);
+        if(parts[0]==='embed'||parts[0]==='shorts') id=parts[1]||'';
+      }
     }
   }catch(e){}
-  return '';
+  return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
 }
 function resetProgress(){
   if(!confirm('Reset all topic completion, study time, plans and quiz history on this device? This cannot be undone.')) return;
@@ -401,8 +413,8 @@ document.getElementById('app').addEventListener('click',async function(event){
   if(action==='speak-reader'){if(state.reader)speak(state.reader.text);return;}
   if(action==='stop-speech'){stopSpeech();return;}
   if(action==='close-reader'){closeReader();return;}
-  if(action==='font-up'&&state.reader){state.reader.fontSize=Math.min(1.8,state.reader.fontSize+0.1);render();return;}
-  if(action==='font-down'&&state.reader){state.reader.fontSize=Math.max(0.95,state.reader.fontSize-0.1);render();return;}
+  if(action==='font-up'&&state.reader){adjustReaderFont(0.1);return;}
+  if(action==='font-down'&&state.reader){adjustReaderFont(-0.1);return;}
   if(action==='video-topic'){state.videoTopic=button.dataset.topic;state.page='videos';render();return;}
   if(action==='load-video'){const field=document.getElementById('video-url');state.videoUrl=field?field.value.trim():'';if(!extractYoutubeId(state.videoUrl)){showToast('Enter a valid YouTube video or Shorts URL.');return;}render();return;}
   if(action==='timer-start'){startTimer();return;}
@@ -467,4 +479,5 @@ async function installApp(){
 }
 window.installApp=installApp;
 render();
+if(state.timerStartedAt){timerInterval=setInterval(refreshTimerDisplay,1000);}
 refreshApiStatus();
