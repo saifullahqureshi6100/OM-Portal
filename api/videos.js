@@ -1,7 +1,7 @@
 function send(res,status,payload){
   res.statusCode=status;
   res.setHeader("Content-Type","application/json; charset=utf-8");
-  res.setHeader("Cache-Control","public, s-maxage=21600, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control","no-store, no-cache, must-revalidate, proxy-revalidate");
   res.end(JSON.stringify(payload));
 }
 export default async function handler(req,res){
@@ -14,8 +14,8 @@ export default async function handler(req,res){
   try{
     const q=topic+" "+part+" lecture tutorial";
     const url=new URL("https://www.googleapis.com/youtube/v3/search");
-    url.search=new URLSearchParams({part:"snippet",type:"video",q:q,maxResults:"6",order:"relevance",regionCode:"PK",relevanceLanguage:"en",safeSearch:"strict",videoEmbeddable:"true"}).toString();
-    const response=await fetch(url.toString(),{headers:{"X-Goog-Api-Key":key}});
+    url.search=new URLSearchParams({part:"snippet",type:"video",q:q,maxResults:"8",order:"relevance",relevanceLanguage:"en",safeSearch:"strict",videoEmbeddable:"true",key:key}).toString();
+    const response=await fetch(url.toString(),{cache:"no-store"});
     const data=await response.json().catch(()=>({}));
     if(!response.ok)return send(res,response.status===403?503:502,{error:data.error&&data.error.message?data.error.message:"YouTube search failed. Check API access and quota."});
     const items=(data.items||[]).filter(x=>x.id&&x.id.videoId&&x.snippet).map(x=>({
