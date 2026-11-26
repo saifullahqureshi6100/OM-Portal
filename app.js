@@ -68,7 +68,7 @@ const DEFAULT_STATE = {
   quizHistory:[], bestScore:0, studySeconds:0, studyDays:[], plan:null,
   selectedTopic:'A-0', explanation:null, explanationBusy:false,
   settings:{provider:'openrouter',model:'openrouter/free'}, apiStatus:null,
-  videoTopic:'A-0', videoUrl:'', videoResults:null, videoBusy:false, reader:null
+  videoTopic:'A-0', videoUrl:'', videoResults:null, videoBusy:false, videoError:'', reader:null
 };
 
 function loadState(){
@@ -248,7 +248,7 @@ function renderVideos(){
     +'<div class="panel video-topics"><div class="section-head compact"><div><div class="eyebrow">AUTOMATIC TOPIC CLIP FINDER</div><h2>Recommended lessons</h2></div><button class="btn btn-small btn-outline" data-action="refresh-videos">Refresh</button></div>'
     +'<label class="field-label">Current topic<select id="video-topic">'+allTopics().map(function(t){return '<option value="'+t.id+'" '+(t.id===state.videoTopic?'selected':'')+'>Part '+t.part+' · '+esc(t.title)+'</option>';}).join('')+'</select></label>'
     +'<div class="video-topic-card"><span class="video-tag">SELECTED TOPIC</span><h3>'+esc(current.title)+'</h3><p>Clips are matched to this exact topic.</p></div>'
-    +(state.videoBusy?'<div class="loading-state"><span class="loader"></span><p>Searching YouTube for relevant lessons…</p></div>':results.length?'<div class="video-results">'+results.map(function(v){return '<button class="video-result" data-action="play-result" data-video-id="'+esc(v.videoId)+'"><img src="'+esc(v.thumbnail||'')+'" alt="" loading="lazy"><span><b>'+esc(v.title)+'</b><small>'+esc(v.channelTitle||'YouTube')+'</small><small>▶ Play in portal</small></span></button>';}).join('')+'</div>':'<div class="empty-state"><h3>No clips loaded yet</h3><p>Automatic search needs a YouTube Data API key configured securely on the Vercel server.</p></div>')
+    +(state.videoBusy?'<div class="loading-state"><span class="loader"></span><p>Searching YouTube for relevant lessons…</p></div>':results.length?'<div class="video-results">'+results.map(function(v){return '<button class="video-result" data-action="play-result" data-video-id="'+esc(v.videoId)+'"><img src="'+esc(v.thumbnail||'')+'" alt="" loading="lazy"><span><b>'+esc(v.title)+'</b><small>'+esc(v.channelTitle||'YouTube')+'</small><small>▶ Play in portal</small></span></button>';}).join('')+'</div>':'<div class="empty-state"><h3>'+(state.videoError?'Video search needs attention':'Searching for lessons')+'</h3><p>'+esc(state.videoError||'No clips are loaded yet. Press Refresh to search YouTube.')+'</p><button class="btn btn-primary" data-action="refresh-videos">Try again</button></div>')
     +'<div class="video-tip">Choose one relevant lesson, then explain the topic aloud from memory. Refresh to find another set of clips.</div></div></section>';
 }
 function renderSettings(){
@@ -379,16 +379,17 @@ async function loadTopicVideos(topicId,force){
   const topic=findTopic(topicId);
   if(state.videoBusy)return;
   if(!force&&state.videoResults&&state.videoResults.topicId===topic.id&&Date.now()-state.videoResults.loadedAt<86400000){return;}
-  state.videoBusy=true;state.videoTopic=topic.id;state.page='videos';render();
+  state.videoBusy=true;state.videoError='';state.videoTopic=topic.id;state.page='videos';render();
   try{
     const response=await fetch('/api/videos?topic='+encodeURIComponent(topic.title)+'&part='+encodeURIComponent(topic.partName),{cache:'no-store'});
     const data=await response.json();
     if(!response.ok)throw new Error(data.error||'Video search is unavailable.');
     state.videoResults={topicId:topic.id,items:data.items||[],loadedAt:Date.now()};
-    if(!state.videoResults.items.length)showToast('No embeddable clips found for this topic. Try Refresh.');
+    if(!state.videoResults.items.length){state.videoError='YouTube returned no matching embeddable videos for this topic. Try another topic.';showToast(state.videoError);}
   }catch(error){
     state.videoResults={topicId:topic.id,items:[],loadedAt:Date.now()};
-    showToast(error.message||'Could not find clips. Check the YouTube API setup.');
+    state.videoError=error.message||'Could not find clips. Check the YouTube API setup.';
+    showToast(state.videoError);
   }
   state.videoBusy=false;render();
 }
