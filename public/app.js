@@ -31,6 +31,11 @@ const MCQS = [
   {q:'Kaizen refers to:', a:['Continuous improvement','Maximum inventory','One-time restructuring','External auditing'], correct:0, why:'Kaizen is the practice of continuous, incremental improvement.'}
 ];
 
+const ENGLISH_READING = {};
+function englishReading(topic){
+  if(ENGLISH_READING[topic.id]) return ENGLISH_READING[topic.id];
+  return topic.title+'\n\nExam reading focus\nStudy the definition, purpose, key elements, practical application and exam points of this topic. Learn the terminology in English, understand one practical example, and practise writing a short structured answer from memory.\n\nQuick revision\n1. Define the concept.\n2. Explain its main elements or process.\n3. Give one practical example.\n4. State two exam-relevant benefits, limitations or applications where applicable.';
+}
 const URDU_NOTES = {
   'A-0':'انٹرپرائز مینجمنٹ میں ادارے کے اندرونی اور بیرونی ماحول کو سمجھنا شامل ہے۔ PESTEL چھ عوامل کا تجزیہ کرتا ہے: سیاسی، معاشی، سماجی، ٹیکنالوجیکل، ماحولیاتی اور قانونی۔ قانونی تقاضے اور اخلاقی اصول ادارے کو ذمہ دارانہ فیصلے کرنے میں مدد دیتے ہیں۔ امتحان میں ہر عنصر کی تعریف اور کاروبار پر اس کے اثر کی مثال تیار کریں۔',
   'A-1':'ڈیجیٹل ٹرانسفارمیشن کا مطلب ہے ٹیکنالوجی استعمال کرکے ادارے کے کام، خدمات اور فیصلوں کو بہتر بنانا۔ ESG میں ماحولیات، سماجی ذمہ داری اور گورننس شامل ہیں۔ ایک اچھا ادارہ صرف منافع نہیں دیکھتا بلکہ ماحول، لوگوں اور شفاف انتظام کو بھی اہمیت دیتا ہے۔',
@@ -264,7 +269,7 @@ function modelOptions(provider,selected){
 function renderReader(){
   const reader=state.reader;
   if(!reader) return '';
-  return '<div class="reader-overlay" id="reader-shell"><div class="reader-toolbar"><span class="reader-brand">OM · READING MODE</span><div class="reader-controls"><button class="btn btn-quiet" data-action="font-down">A−</button><button class="btn btn-quiet" data-action="font-up">A+</button><button class="btn btn-outline" data-action="speak-reader">▶ Listen</button><button class="btn btn-quiet" data-action="stop-speech">Stop</button><button class="btn btn-primary" data-action="close-reader">Exit ✕</button></div></div><article class="reader-content" dir="rtl" style="font-size:'+reader.fontSize+'rem"><div class="eyebrow" dir="ltr">PART '+reader.part+' · FULL-SCREEN LESSON</div><h1>'+esc(reader.title)+'</h1><div class="reader-body">'+esc(reader.text).replace(/\n/g,'<br>')+'</div><div class="reader-footer">پڑھنے کے بعد کتاب بند کریں اور اہم نکات اپنی زبان میں دہرائیں۔</div></article></div>';
+  return '<div class="reader-overlay" id="reader-shell"><div class="reader-toolbar"><span class="reader-brand">OM · READING MODE</span><div class="reader-controls"><button class="btn btn-quiet" data-action="font-down">A−</button><button class="btn btn-quiet" data-action="font-up">A+</button><span class="reader-language">English Reading</span><button class="btn btn-primary" data-action="close-reader">Exit ✕</button></div></div><article class="reader-content" dir="ltr" style="text-align:left;font-size:'+reader.fontSize+'rem"><div class="eyebrow" dir="ltr">PART '+reader.part+' · FULL-SCREEN ENGLISH READING</div><h1>'+esc(reader.title)+'</h1><div class="reader-body">'+esc(reader.text).replace(/\n/g,'<br>')+'</div><div class="reader-footer">After reading, close the lesson and reproduce the key points in your own words.</div></article></div>';
 }
 function render(){
   const app=document.getElementById('app');
@@ -309,7 +314,7 @@ function stopTimer(){
   render(); showToast('Your study time has been saved.');
 }
 function openReader(topic, text){
-  state.reader={topicId:topic.id,part:topic.part,title:topic.title,text:text||URDU_NOTES[topic.id]||'اس موضوع کو اپنی ICMA کورس بک کے مطابق پڑھیں، اہم تعریفیں لکھیں اور ایک عملی مثال تیار کریں۔',fontSize:1.28};
+  state.reader={topicId:topic.id,part:topic.part,title:topic.title,text:text||englishReading(topic),fontSize:1.28};
   render();
   const shell=document.getElementById('reader-shell');
   if(shell&&shell.requestFullscreen){shell.requestFullscreen().catch(function(){});}
@@ -407,10 +412,10 @@ document.getElementById('app').addEventListener('click',async function(event){
     const prompt=action==='ask-tutor-simple'?'Explain in very simple Urdu for a beginner, with an everyday example.':action==='ask-tutor-exam'?'Explain in Urdu and then give a concise structured exam answer with headings and key points.':(q?q.value:'');
     generateExplanation(prompt);return;
   }
-  if(action==='read'){const topic=findTopic(button.dataset.topic);openReader(topic,URDU_NOTES[topic.id]);return;}
-  if(action==='read-explanation'){const topic=findTopic(state.explanation.topicId);openReader(topic,state.explanation.text);return;}
+  if(action==='read'){const topic=findTopic(button.dataset.topic);openReader(topic,englishReading(topic));return;}
+  if(action==='read-explanation'){const topic=findTopic(state.explanation.topicId);openReader(topic,englishReading(topic));return;}
   if(action==='speak-explanation'){if(state.explanation)speak(state.explanation.text);return;}
-  if(action==='speak-reader'){if(state.reader)speak(state.reader.text);return;}
+  if(action==='speak-reader'){showToast('Reading Mode is English. Use Urdu Voice Explain from the Tutor screen for Urdu audio.');return;}
   if(action==='stop-speech'){stopSpeech();return;}
   if(action==='close-reader'){closeReader();return;}
   if(action==='font-up'&&state.reader){adjustReaderFont(0.1);return;}
