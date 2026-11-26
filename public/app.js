@@ -68,7 +68,7 @@ const DEFAULT_STATE = {
   quizHistory:[], bestScore:0, studySeconds:0, studyDays:[], plan:null,
   selectedTopic:'A-0', explanation:null, explanationBusy:false,
   settings:{provider:'openrouter',model:'openrouter/free'}, apiStatus:null,
-  videoTopic:'A-0', videoUrl:'', reader:null
+  videoTopic:'A-0', videoUrl:'', videoResults:null, videoBusy:false, reader:null
 };
 
 function loadState(){
@@ -241,14 +241,15 @@ function renderTutor(){
 function renderVideos(){
   const current=findTopic(state.videoTopic);
   const id=extractYoutubeId(state.videoUrl);
-  return '<section class="page-intro"><div class="eyebrow">WATCH · PAUSE · REVISE</div><h1>Video clips mode</h1><p>Find short lessons for the exact OM topic. Search results open on YouTube; paste a video or Shorts link below to play it inside this study screen.</p></section>'
-    +'<section class="video-layout"><div class="panel video-player-panel"><div class="video-player">'+(id?'<iframe src="https://www.youtube-nocookie.com/embed/'+id+'" title="Study video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>':'<div class="video-placeholder"><span>▶</span><b>Your study player</b><small>Paste a YouTube video or Shorts link to play it here.</small></div>')+'</div>'
-    +'<label class="field-label">YouTube clip URL<input id="video-url" type="url" value="'+esc(state.videoUrl)+'" placeholder="https://www.youtube.com/watch?v=…"></label><button class="btn btn-primary" data-action="load-video">Play this clip</button>'
-    +'<div class="small muted">Use official lectures or reliable educational channels. Check that the clip matches the ICMA syllabus topic.</div></div>'
-    +'<div class="panel video-topics"><div class="section-head compact"><div><div class="eyebrow">TOPIC CLIP FINDER</div><h2>Find a lesson</h2></div></div>'
+  const results=state.videoResults&&state.videoResults.topicId===current.id?state.videoResults.items||[]:[];
+  return '<section class="page-intro"><div class="eyebrow">WATCH · PAUSE · REVISE</div><h1>Video clips mode</h1><p>Relevant clips are searched automatically for the selected syllabus topic and shown here. Choose a clip to play it inside the portal.</p></section>'
+    +'<section class="video-layout"><div class="panel video-player-panel"><div class="video-player">'+(id?'<iframe src="https://www.youtube-nocookie.com/embed/'+id+'" title="Study video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>':'<div class="video-placeholder"><span>▶</span><b>Your study player</b><small>Select one of the recommended clips to start learning.</small></div>')+'</div>'
+    +'<div class="small muted">Videos are embedded from YouTube. Availability and playback are controlled by each video owner and YouTube.</div></div>'
+    +'<div class="panel video-topics"><div class="section-head compact"><div><div class="eyebrow">AUTOMATIC TOPIC CLIP FINDER</div><h2>Recommended lessons</h2></div><button class="btn btn-small btn-outline" data-action="refresh-videos">Refresh</button></div>'
     +'<label class="field-label">Current topic<select id="video-topic">'+allTopics().map(function(t){return '<option value="'+t.id+'" '+(t.id===state.videoTopic?'selected':'')+'>Part '+t.part+' · '+esc(t.title)+'</option>';}).join('')+'</select></label>'
-    +'<div class="video-topic-card"><span class="video-tag">SELECTED TOPIC</span><h3>'+esc(current.title)+'</h3><p>Search short explanations, lecture clips and worked examples for this topic.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="'+youtubeSearchUrl(current.title)+'">Search YouTube clips ↗</a></div>'
-    +'<div class="video-tip">Tip: Watch one short clip, close it, then explain the topic aloud in your own words. Mark the topic complete after you can recall its main points.</div></div></section>';
+    +'<div class="video-topic-card"><span class="video-tag">SELECTED TOPIC</span><h3>'+esc(current.title)+'</h3><p>Clips are matched to this exact topic.</p></div>'
+    +(state.videoBusy?'<div class="loading-state"><span class="loader"></span><p>Searching YouTube for relevant lessons…</p></div>':results.length?'<div class="video-results">'+results.map(function(v){return '<button class="video-result" data-action="play-result" data-video-id="'+esc(v.videoId)+'"><img src="'+esc(v.thumbnail||'')+'" alt="" loading="lazy"><span><b>'+esc(v.title)+'</b><small>'+esc(v.channelTitle||'YouTube')+'</small><small>▶ Play in portal</small></span></button>';}).join('')+'</div>':'<div class="empty-state"><h3>No clips loaded yet</h3><p>Automatic search needs a YouTube Data API key configured securely on the Vercel server.</p></div>')
+    +'<div class="video-tip">Choose one relevant lesson, then explain the topic aloud from memory. Refresh to find another set of clips.</div></div></section>';
 }
 function renderSettings(){
   const status=state.apiStatus;
@@ -258,7 +259,7 @@ function renderSettings(){
     +'<label>Model<select id="model-select">'+modelOptions(state.settings.provider,state.settings.model)+'</select></label></div>'
     +'<div class="connection-status '+(status&&status[state.settings.provider]?'connected':'not-connected')+'"><span class="status-dot"></span><div><b>'+(status&&status[state.settings.provider]?'Provider key detected on server':'Provider key not configured yet')+'</b><small>'+(status&&status[state.settings.provider]?'The server can attempt AI requests. Free-tier quotas still apply.':'Local Urdu notes and study tools work without a key. Add your own key in Vercel to enable live AI explanations.')+'</small></div></div>'
     +'<div class="key-setup-grid"><a class="key-setup-link" href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener"><b>Get an OpenRouter key ↗</b><small>Use free model routing with the model openrouter/free.</small></a><a class="key-setup-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener"><b>Get a Gemini API key ↗</b><small>Gemini API offers a free tier for selected models and quotas.</small></a></div>'
-    +'<div class="env-instructions"><b>Vercel environment variables</b><p>Open Vercel → your OM-Portal project → Settings → Environment Variables. Add only the key for the provider you selected:</p><code>OPENROUTER_API_KEY</code> or <code>GEMINI_API_KEY</code><p>Set it for Production and Preview, then redeploy. Never paste keys into this page, GitHub files or screenshots.</p></div>'
+    +'<div class="env-instructions"><b>Vercel environment variables</b><p>Open Vercel → your OM-Portal project → Settings → Environment Variables. Add only the key for the provider you selected:</p><code>OPENROUTER_API_KEY</code> or <code>GEMINI_API_KEY</code><p>Set it for Production and Preview, then redeploy. For automatic topic video clips, also enable YouTube Data API v3 in Google Cloud, create an API key restricted to that API, and add it as <code>YOUTUBE_API_KEY</code> in Vercel Production. Never paste keys into this page, GitHub files or screenshots.</p></div>'
     +'<div class="settings-foot"><span>Selected provider and model are saved on this device.</span><button class="btn btn-outline" data-action="refresh-status">Check connection</button></div></section>'
     +'<section class="panel settings-panel"><div class="eyebrow">DEVICE & PRIVACY</div><h2>Local study data</h2><p class="muted">Topic completion, study time, quiz scores and plans are saved in this browser. Clearing browser storage will remove this local history.</p><button class="btn btn-quiet" data-action="reset-progress">Reset study progress</button></section>';
 }
@@ -374,8 +375,22 @@ async function refreshApiStatus(){
     showToast('Live AI status is unavailable. Local study mode remains ready.');
   }
 }
-function youtubeSearchUrl(title){
-  return 'https://www.youtube.com/results?search_query='+encodeURIComponent(title+' organizational management lecture Urdu');
+async function loadTopicVideos(topicId,force){
+  const topic=findTopic(topicId);
+  if(state.videoBusy)return;
+  if(!force&&state.videoResults&&state.videoResults.topicId===topic.id&&Date.now()-state.videoResults.loadedAt<86400000){return;}
+  state.videoBusy=true;state.videoTopic=topic.id;state.page='videos';render();
+  try{
+    const response=await fetch('/api/videos?topic='+encodeURIComponent(topic.title)+'&part='+encodeURIComponent(topic.partName),{cache:'no-store'});
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||'Video search is unavailable.');
+    state.videoResults={topicId:topic.id,items:data.items||[],loadedAt:Date.now()};
+    if(!state.videoResults.items.length)showToast('No embeddable clips found for this topic. Try Refresh.');
+  }catch(error){
+    state.videoResults={topicId:topic.id,items:[],loadedAt:Date.now()};
+    showToast(error.message||'Could not find clips. Check the YouTube API setup.');
+  }
+  state.videoBusy=false;render();
 }
 function extractYoutubeId(value){
   let id='';
@@ -403,7 +418,7 @@ document.getElementById('app').addEventListener('click',async function(event){
   const button=event.target.closest('[data-action]'); if(!button) return;
   const action=button.dataset.action;
   if(action==='install'){installApp();return;}
-  if(action==='nav'){state.page=button.dataset.page;state.reader=null;render();return;}
+  if(action==='nav'){state.page=button.dataset.page;state.reader=null;render();if(state.page==='videos')loadTopicVideos(state.videoTopic,false);return;}
   if(action==='part'){state.activePart=button.dataset.part;render();return;}
   if(action==='open-part'){state.activePart=button.dataset.part;state.page='study';render();return;}
   if(action==='explain'){const t=findTopic(button.dataset.topic);state.selectedTopic=t.id;state.explanation=null;state.page='tutor';render();generateExplanation('Explain in simple Urdu with an everyday example and exam-focused key points.');return;}
@@ -420,7 +435,9 @@ document.getElementById('app').addEventListener('click',async function(event){
   if(action==='close-reader'){closeReader();return;}
   if(action==='font-up'&&state.reader){adjustReaderFont(0.1);return;}
   if(action==='font-down'&&state.reader){adjustReaderFont(-0.1);return;}
-  if(action==='video-topic'){state.videoTopic=button.dataset.topic;state.page='videos';render();return;}
+  if(action==='video-topic'){loadTopicVideos(button.dataset.topic,false);return;}
+  if(action==='refresh-videos'){loadTopicVideos(state.videoTopic,true);return;}
+  if(action==='play-result'){state.videoUrl='https://www.youtube.com/watch?v='+button.dataset.videoId;render();return;}
   if(action==='load-video'){const field=document.getElementById('video-url');state.videoUrl=field?field.value.trim():'';if(!extractYoutubeId(state.videoUrl)){showToast('Enter a valid YouTube video or Shorts URL.');return;}render();return;}
   if(action==='timer-start'){startTimer();return;}
   if(action==='timer-stop'){stopTimer();return;}
@@ -453,7 +470,7 @@ document.getElementById('app').addEventListener('change',function(event){
     state.done[input.dataset.topicCheck]=input.checked;markStudyDay();saveState();render();return;
   }
   if(input.id==='tutor-topic'){state.selectedTopic=input.value;state.explanation=null;render();return;}
-  if(input.id==='video-topic'){state.videoTopic=input.value;render();return;}
+  if(input.id==='video-topic'){loadTopicVideos(input.value,false);return;}
   if(input.id==='provider-select'){
     state.settings.provider=input.value;
     state.settings.model=input.value==='gemini'?'gemini-3.8-flash':'openrouter/free';
