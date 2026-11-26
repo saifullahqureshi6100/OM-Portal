@@ -1,4 +1,4 @@
-const CACHE_NAME = 'om-portal-v3';
+const CACHE_NAME = 'om-portal-v4';
 const CORE_ASSETS = ['/', '/index.html', '/app.js', '/style.css', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', function (event) {
